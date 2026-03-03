@@ -6,7 +6,7 @@ from datapreprocessor.filter.filter import filtered_examples
 from datapreprocessor.filter.keep import FlawReport, keep
 
 
-def test_filtered_examples_with_keep():
+def test_filter_with_keep():
     root_dir = Path(__file__).resolve().parents[2]
     data_file = root_dir / "data" / "testdata_de_en_100.jsonl"
     ds = load_dataset("json", data_files=str(data_file), split="train")
