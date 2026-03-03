@@ -9,7 +9,7 @@ Example = Dict[str, Any]
 Predicate = Callable[[Example], bool]
 
 
-def filtered_examples(ds: Iterable[Example], keep: Predicate) -> Iterator[Example]:
+def filter_examples(ds: Iterable[Example], keep: Predicate) -> Iterator[Example]:
     """Core: liefert nur die Beispiele, die keep(example) passieren."""
     for ex in ds:
         if keep(ex):
