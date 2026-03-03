@@ -1,4 +1,4 @@
-# token_filters.py
+# token_checks.py
 from __future__ import annotations
 
 from typing import Sequence

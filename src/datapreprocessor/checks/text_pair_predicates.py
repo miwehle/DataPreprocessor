@@ -1,4 +1,5 @@
 from __future__ import annotations
+import builtins
 
 def bad_length_ratio(
     de: str,
@@ -9,7 +10,7 @@ def bad_length_ratio(
     if len(de) == 0 or len(en) == 0:
         return True
 
-    r = len(de) / max(1, len(en))
+    r = len(de) / builtins.max(1, len(en))
     if r < min or r > max:
         return True
     

@@ -2,59 +2,37 @@
 #import time
 #t = time.time()
 
-import re
 import os
+import checks.check as c
 
-import datapreprocessor.check as c
-
+from norm import norm
 from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer
 
 
 class DataPreprocessor:
-    _URL_RE = re.compile(r"https?://|www\.")
-    _GERMAN_CHARS = re.compile(r"[äöüÄÖÜß]")
-    _WHITESPACE_RE = re.compile(r"\s+")
-    _CTRL_RE = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F]")
+    """
+    load
+    
+    # auf der internen Rep:
+    filter   # inkl. norm
+
+    # in Datei:
+    save     # Formate: txt, arrow, json
+    tokenize # Formate: dieselben? Besser separat (andere Klasse)
+    """
 
     def __init__(self):
         self.tok = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-de-en")
         self.data = None
-        self.violations = {}
-
-    @classmethod
-    def _norm(cls, s: str) -> str:
-        s = str(s).strip()
-        s = cls._CTRL_RE.sub("", s)
-        s = cls._WHITESPACE_RE.sub(" ", s)
-        return s
-
-    @classmethod
-    def _is_pair_ok(cls, de: str, en: str) -> bool:
-        de = cls._norm(de)
-        en = cls._norm(en)
-
-        if len(de) < 5 or len(en) < 5:
-            return False
-        if de.lower() == en.lower():
-            return False
-        if cls._URL_RE.search(de) or cls._URL_RE.search(en):
-            return False
-        if cls._GERMAN_CHARS.search(en):
-            return False
-
-        r = len(de) / max(1, len(en))
-        if r < 0.33 or r > 3.0:
-            return False
-
-        return True
+        self.flaws = {}
     
     @classmethod
     def _check(cls, de: str, en: str) -> bool:
-        violations = c.check(de, c.TEXT_FILTERS)
-        violations += c.check(en, c.TEXT_FILTERS)
-        violations += c.check_pair(de, en, c.TEXT_PAIR_FILTERS)
-        return violations
+        flaws = c.check(de, c.TEXT_FLAWS)
+        flaws += c.check(en, c.TEXT_FLAWS)
+        flaws += c.check_pair(de, en, c.TEXT_PAIR_FLAWS)
+        return flaws
 
     def load_from_file(self, file):
         """Lädt Daten aus einer Datei"""
@@ -81,10 +59,10 @@ class DataPreprocessor:
         if self.data:
             tokenized_data = []
             for idx, item in enumerate(self.data):
-                de = self._norm(item["de"])
-                en = self._norm(item["en"])
-                violations = self._check(de, en)
-                if len(violations) == 0:
+                de = norm(item["de"])
+                en = norm(item["en"])
+                flaws = self._check(de, en)
+                if len(flaws) == 0:
                   de_tokens = self.tok(item["de"], truncation=True, max_length=block_size)
                   en_tokens = self.tok(item["en"], truncation=True, max_length=block_size)
                   tokenized_data.append({
@@ -92,7 +70,7 @@ class DataPreprocessor:
                       "en": en_tokens["input_ids"]
                   })
                 else:
-                    self.violations[idx] = violations
+                    self.flaws[idx] = flaws
             self.data = tokenized_data
         print("< preprocess")
 
