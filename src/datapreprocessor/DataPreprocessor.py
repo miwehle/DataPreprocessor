@@ -5,7 +5,7 @@
 import os
 import filter.keep as c
 
-from norm import norm
+from datapreprocessor.norm import norm
 from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer
 
