@@ -99,12 +99,16 @@ class NormReport:
         self.out.close()
 
 
-def norm_example(ex: Example, norm_reporter: NormReporter | None = None) -> Example:
+def norm_example(
+    ex: Example,
+    changes: list[Change] = CHANGES,
+    norm_reporter: NormReporter | None = None,
+) -> Example:
     """Return a normalized copy of one translation example with de/en texts."""
     def norm(s: str) -> str:
         """Normalize text by removing control chars and collapsing whitespace."""
         before = str(s)
-        after, norm_changes = apply_changes(before)
+        after, norm_changes = apply_changes(before, changes=changes)
 
         if norm_reporter is not None:
             norm_reporter.note_change(before, after, norm_changes)

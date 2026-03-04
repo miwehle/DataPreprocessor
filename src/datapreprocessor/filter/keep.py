@@ -76,7 +76,12 @@ class FlawReport:
         self.out.close()
 
 
-def keep(ex: Example, flaw_reporter: FlawReporter | None = None):
+def keep(
+    ex: Example,
+    text_flaws=TEXT_FLAWS,
+    pair_flaws=TEXT_PAIR_FLAWS,
+    flaw_reporter: FlawReporter | None = None,
+):
     """Return True for clean examples and optionally report flaw findings."""
     def check(x, flaws):
         return find_flaws(flaws, x)
@@ -87,11 +92,11 @@ def keep(ex: Example, flaw_reporter: FlawReporter | None = None):
     de = ex["translation"]["de"]
     en = ex["translation"]["en"]
 
-    de_flaws = check(de, TEXT_FLAWS)
-    en_flaws = check(en, TEXT_FLAWS)
-    pair_flaws = check_pair(de, en, TEXT_PAIR_FLAWS)
+    de_flaws = check(de, text_flaws)
+    en_flaws = check(en, text_flaws)
+    pair_flaw_hits = check_pair(de, en, pair_flaws)
 
     if flaw_reporter is not None:
-        flaw_reporter.note_flaws(de_flaws, en_flaws, pair_flaws)
+        flaw_reporter.note_flaws(de_flaws, en_flaws, pair_flaw_hits)
 
-    return de_flaws == [] and en_flaws == [] and pair_flaws == []
+    return de_flaws == [] and en_flaws == [] and pair_flaw_hits == []
