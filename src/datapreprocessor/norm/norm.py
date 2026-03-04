@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Callable, Protocol, TextIO
+from typing import Any, Callable, Dict, Protocol, TextIO
 
 _WHITESPACE_RE = re.compile(r"\s+")
 _CTRL_RE = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F]")
@@ -22,6 +22,7 @@ _UNICODE_QUOTE_MAP = str.maketrans(
     }
 )
 Change = Callable[[str], str]
+Example = Dict[str, Any]
 
 
 def strip_edges(text: str) -> str:
@@ -107,3 +108,13 @@ def norm(s: str, norm_reporter: NormReporter | None = None) -> str:
         norm_reporter.note_change(before, after, norm_changes)
 
     return after
+
+
+def norm_example(ex: Example, norm_reporter: NormReporter | None = None) -> Example:
+    """Return a normalized copy of one translation example with de/en texts."""
+    normalized = dict(ex)
+    translation = dict(normalized["translation"])
+    translation["de"] = norm(translation["de"], norm_reporter=norm_reporter)
+    translation["en"] = norm(translation["en"], norm_reporter=norm_reporter)
+    normalized["translation"] = translation
+    return normalized
