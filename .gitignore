@@ -5,3 +5,4 @@ __pycache__/
 norm_report.txt
 .env
 settings.json
+data/
