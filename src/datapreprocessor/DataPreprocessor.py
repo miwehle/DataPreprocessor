@@ -5,7 +5,7 @@
 import os
 import filter.keep as c
 
-from datapreprocessor.norm import norm
+from datapreprocessor.norm import norm_example
 from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer
 
@@ -59,8 +59,9 @@ class DataPreprocessor:
         if self.data:
             tokenized_data = []
             for idx, item in enumerate(self.data):
-                de = norm(item["de"])
-                en = norm(item["en"])
+                normalized = norm_example({"translation": {"de": item["de"], "en": item["en"]}})
+                de = normalized["translation"]["de"]
+                en = normalized["translation"]["en"]
                 flaws = self._check(de, en)
                 if len(flaws) == 0:
                   de_tokens = self.tok(item["de"], truncation=True, max_length=block_size)

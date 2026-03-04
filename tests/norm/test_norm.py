@@ -2,7 +2,7 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from datapreprocessor.norm import NormReport, norm
+from datapreprocessor.norm import NormReport, norm_examples
 
 
 def test_norm_report_matches_expected():
@@ -10,11 +10,11 @@ def test_norm_report_matches_expected():
     data_file = root_dir / "data" / "testdata_de_en_100.jsonl"
     report = NormReport.from_path(root_dir / "norm_report.txt")
     ds = load_dataset("json", data_files=str(data_file), split="train")
+    it = norm_examples(ds, norm_reporter=report)
 
     try:
-        for ex in ds:
-            norm(ex["translation"]["de"], norm_reporter=report)
-            norm(ex["translation"]["en"], norm_reporter=report)
+        for ex in it:
+            pass
     finally:
         report.close()
         actual_report = root_dir / "norm_report.txt"
