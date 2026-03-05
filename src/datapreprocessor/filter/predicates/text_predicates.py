@@ -173,7 +173,7 @@ def has_unbalanced_brackets(text: str) -> bool:
     return len(stack) != 0
 
 
-TEXT_FLAWS = [
+TEXT_FLAWS = (
     is_blank,
     partial(is_too_short, min_chars=10),
     partial(is_too_long, max_chars=300),
@@ -184,4 +184,4 @@ TEXT_FLAWS = [
     contains_invisible_format_chars,
     has_odd_number_of_quotes,
     has_unbalanced_brackets,
-]
+)

@@ -8,7 +8,7 @@ from .norm_example import Example, NormReporter, norm_example
 
 def norm_examples(
     ds: Iterable[Example],
-    changes: list[Change] = CHANGES,
+    changes: Iterable[Change] = CHANGES,
     norm_reporter: NormReporter | None = None,
 ) -> Iterator[Example]:
     """Yield normalized examples from an input iterable."""

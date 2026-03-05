@@ -1,12 +1,13 @@
 from pathlib import Path
-from typing import Any, Dict, Protocol, TextIO
+from typing import Any, Dict, Iterable, Protocol, TextIO
 
 from . import changes as c
 from .changes import Change
 
 Example = Dict[str, Any]
 
-def apply_changes(text: str, changes: list[Change] = c.CHANGES) -> tuple[str, list[str]]:
+
+def apply_changes(text: str, changes: Iterable[Change] = c.CHANGES) -> tuple[str, list[str]]:
     change_names: list[str] = []
     current = text
     for change in changes:
@@ -53,7 +54,7 @@ class NormReport:
 
 def norm_example(
     ex: Example,
-    changes: list[Change] = c.CHANGES,
+    changes: Iterable[Change] = c.CHANGES,
     norm_reporter: NormReporter | None = None,
 ) -> Example:
     """Return a normalized copy of one translation example with de/en texts."""
