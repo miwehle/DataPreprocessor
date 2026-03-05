@@ -111,11 +111,38 @@ _BRACKET_PAIRS = {
 
 def has_odd_number_of_quotes(text: str, *, quote_chars: Iterable[str] = _QUOTE_CHARS) -> bool:
     """
-    Heuristic. Counts quote characters and flags odd totals.
-    Not language-smart (doesn't handle apostrophes in contractions, etc.).
+    Heuristic: counts quote characters and flags odd totals.
+
+    Apostrophes are ignored for common word-internal usage, e.g.
+    ``can't``, ``John's`` and noisy spacing artifacts like ``minute' s``.
+    This reduces false positives for English possessive/contraction forms.
     """
+    def looks_like_apostrophe(i: int) -> bool:
+        prev_ch = text[i - 1] if i > 0 else ""
+        next_ch = text[i + 1] if i + 1 < len(text) else ""
+        next2_ch = text[i + 2] if i + 2 < len(text) else ""
+
+        # Common apostrophe usage: can't, John's
+        if prev_ch.isalnum() and next_ch.isalnum():
+            return True
+
+        # Common spacing artifact in noisy corpora: minute' s
+        if prev_ch.isalnum() and next_ch.isspace() and next2_ch.lower() == "s":
+            return True
+
+        return False
+
     qs = set(quote_chars)
-    count = sum(1 for ch in text if ch in qs)
+    apostrophe_chars = {"'", "’"}
+
+    count = 0
+    for i, ch in enumerate(text):
+        if ch not in qs:
+            continue
+        if ch in apostrophe_chars and looks_like_apostrophe(i):
+            continue
+        count += 1
+
     return (count % 2) == 1
 
 
