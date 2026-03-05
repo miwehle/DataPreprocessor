@@ -32,7 +32,36 @@ def format_wrapped_label(label: str, width: int = 22) -> str:
     text = label.replace("_", " ")
     text = re.sub(r"(?<=\S)\(", " (", text)
     text = re.sub(r"\s+", " ", text).strip()
-    return fill(text, width=width)
+    if len(text) <= width:
+        return text
+
+    def _wrap_keep_newlines(s: str) -> str:
+        return "\n".join(fill(part, width=width) for part in s.splitlines())
+
+    # Default wrapping fallback.
+    wrapped_default = fill(text, width=width)
+
+    # Prefer wrap opportunities before opening brackets when wrapping is needed.
+    bracket_break_candidates: list[str] = []
+    for match in re.finditer(r" \(", text):
+        i = match.start()
+        candidate = _wrap_keep_newlines(text[:i] + "\n" + text[i + 1 :])
+        bracket_break_candidates.append(candidate)
+
+    if not bracket_break_candidates:
+        return wrapped_default
+
+    def _score(s: str) -> tuple[int, int]:
+        lines = s.splitlines()
+        too_long = sum(1 for line in lines if len(line) > width)
+        max_len = max((len(line) for line in lines), default=0)
+        return too_long, max_len
+
+    feasible = [c for c in bracket_break_candidates if _score(c)[0] == 0]
+    if feasible:
+        return min(feasible, key=_score)
+
+    return wrapped_default
 
 
 def _needs_diagonal_xtick_labels(ax, renderer) -> bool:
