@@ -2,7 +2,10 @@ __pycache__/
 **/__pycache__/
 *.py[cod]
 *.log
+flaw_report.txt
 norm_report.txt
 .env
 settings.json
 data/
+!tests/data/
+!tests/data/**
