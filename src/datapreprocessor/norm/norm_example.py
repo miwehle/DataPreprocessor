@@ -1,58 +1,18 @@
-import re
 from pathlib import Path
 from typing import Any, Callable, Dict, Protocol, TextIO
 
-_WHITESPACE_RE = re.compile(r"\s+")
-_CTRL_RE = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F]")
-_APOSTROPHE_SPACING_RE = re.compile(r"(?<=\w)['’]\s+(?=\w)")
-_UNICODE_QUOTE_MAP = str.maketrans(
-    {
-        "’": "'",
-        "‘": "'",
-        "‚": "'",
-        "‛": "'",
-        "“": '"',
-        "”": '"',
-        "„": '"',
-        "‟": '"',
-        "‹": "'",
-        "›": "'",
-        "«": '"',
-        "»": '"',
-    }
-)
+from . import changes as c
+
 Change = Callable[[str], str]
 Example = Dict[str, Any]
 
-
-def strip_edges(text: str) -> str:
-    return text.strip()
-
-
-def remove_control_chars(text: str) -> str:
-    return _CTRL_RE.sub("", text)
-
-
-def collapse_whitespace(text: str) -> str:
-    return _WHITESPACE_RE.sub(" ", text)
-
-
-def normalize_unicode_quotes(text: str) -> str:
-    return text.translate(_UNICODE_QUOTE_MAP)
-
-
-def fix_apostrophe_spacing(text: str) -> str:
-    return _APOSTROPHE_SPACING_RE.sub("'", text)
-
-
 CHANGES: list[Change] = [
-    strip_edges,
-    remove_control_chars,
-    collapse_whitespace,
-    normalize_unicode_quotes,
-    fix_apostrophe_spacing,
+    c.strip_edges,
+    c.remove_control_chars,
+    c.collapse_whitespace,
+    c.normalize_unicode_quotes,
+    c.fix_apostrophe_spacing,
 ]
-
 
 def apply_changes(text: str, changes: list[Change] = CHANGES) -> tuple[str, list[str]]:
     change_names: list[str] = []

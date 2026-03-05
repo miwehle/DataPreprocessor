@@ -2,7 +2,8 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from datapreprocessor.norm import NormReport, norm_examples
+from datapreprocessor.norm.norm import norm_examples
+from datapreprocessor.norm.norm_example import NormReport
 
 
 def test_norm_report_matches_expected():

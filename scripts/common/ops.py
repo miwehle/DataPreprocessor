@@ -7,7 +7,8 @@ from datasets import load_dataset
 
 from datapreprocessor.filter.filter import filter_examples
 from datapreprocessor.filter.keep import FlawReport, keep
-from datapreprocessor.norm import NormReport, norm_examples
+from datapreprocessor.norm.norm import norm_examples
+from datapreprocessor.norm.norm_example import NormReport
 
 from .io import load_jsonl, write_jsonl
 
