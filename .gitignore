@@ -10,3 +10,5 @@ data/
 !tests/data/
 !tests/data/**
 /tokenize_report.txt
+.vscode/extensions.json
+

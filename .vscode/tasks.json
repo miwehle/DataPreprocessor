@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LOC: Project (scc)",
+      "type": "shell",
+      "command": "scc",
+      "args": [
+        "."
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "LOC: Packages norm/filter/tokenizer (scc)",
+      "type": "shell",
+      "command": "scc",
+      "args": [
+        "src/datapreprocessor/norm",
+        "src/datapreprocessor/filter",
+        "src/datapreprocessor/tokenizer"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "LOC: By File (scc)",
+      "type": "shell",
+      "command": "scc",
+      "args": [
+        ".",
+        "--by-file",
+        "--format",
+        "wide"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
