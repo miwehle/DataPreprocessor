@@ -2,8 +2,7 @@
 
 from datasets import load_dataset
 
-from datapreprocessor.tokenizer.tokenize_example import TokenizeReport, tokenize_example
-from datapreprocessor.tokenizer.tokenizer import tokenize_examples
+from datapreprocessor.tokenizer import TokenizeReport, tokenize_example, tokenize_examples
 
 
 class DummyTokenizer:

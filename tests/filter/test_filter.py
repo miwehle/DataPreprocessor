@@ -3,8 +3,7 @@ from functools import partial
 
 from datasets import load_dataset
 
-from datapreprocessor.filter.filter import filter_examples
-from datapreprocessor.filter.keep import FlawReport, keep
+from datapreprocessor.filter import FlawReport, filter_examples, keep
 
 
 def test_filter_with_keep():
