@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import re
 from textwrap import fill
 
@@ -168,3 +169,18 @@ def set_coord_display(ax) -> None:
         return s
 
     ax.format_coord = lambda x, y: f"(x, y) = ({_fmt(x)}, {_fmt(y)})"
+
+
+def integer_histogram_bins(*value_series, max_bins: int = 60) -> list[float]:
+    values = [int(v) for series in value_series for v in series]
+    if not values:
+        return [-0.5, 0.5]
+
+    min_value = min(values)
+    max_value = max(values)
+    value_span = (max_value - min_value) + 1
+    step = max(1, math.ceil(value_span / max_bins))
+
+    start = min_value - 0.5
+    n_bins = math.ceil(value_span / step)
+    return [start + i * step for i in range(n_bins + 1)]
