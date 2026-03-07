@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from common.io import dataset_path
-from common.ops import filter
+from ipy.io import dataset_path
+from ipy.ops import filter
 
 
 def main() -> int:
