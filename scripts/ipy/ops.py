@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from functools import partial
-from itertools import islice
 from pathlib import Path
 
 from datasets import load_dataset
@@ -23,7 +22,7 @@ def download(
     max_records: int | None = None,
 ) -> int:
     ds = load_dataset(dataset, config, split=split)
-    records = ds if max_records is None else islice(ds, max_records)
+    records = ds if max_records is None else ds.select(range(min(max_records, len(ds))))
     save(records, output)
     print(f"Wrote {output}")
     return 0

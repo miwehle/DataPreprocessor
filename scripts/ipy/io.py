@@ -49,5 +49,5 @@ def save(records: Iterable[Record], output_path: str | Path) -> None:
         return
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    ds = Dataset.from_generator(lambda: records)
+    ds = records if isinstance(records, Dataset) else Dataset.from_list(list(records))
     ds.save_to_disk(str(out_path))
