@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from functools import partial
 from pathlib import Path
+from typing import Any
 
 from datasets import load_dataset
 from transformers import AutoTokenizer
@@ -11,6 +13,27 @@ from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import TokenizeReport, tokenize_examples
 
 from .io import load, save
+
+
+def _run_with_optional_report(
+    *,
+    input_path: str | Path,
+    output_path: str | Path,
+    report_path: str | Path | None,
+    make_report: Callable[[str | Path], Any],
+    transform: Callable[[Iterable[dict], Any | None], Iterable[dict]],
+) -> None:
+    ds = load(input_path)
+    report = make_report(report_path) if report_path is not None else None
+    try:
+        save(transform(ds, report), output_path)
+    finally:
+        if report is not None:
+            report.close()
+
+    print(f"Wrote {output_path}")
+    if report_path is not None:
+        print(f"Wrote {report_path}")
 
 
 def download(
@@ -34,20 +57,13 @@ def norm(
     norm_report_path: str | Path | None = "norm_report.txt",
     norm_debug: bool = False,
 ) -> None:
-    ds = load(input_path)
-    report = (
-        NormReport.from_path(norm_report_path, debug=norm_debug)
-        if norm_report_path is not None
-        else None
+    _run_with_optional_report(
+        input_path=input_path,
+        output_path=output_path,
+        report_path=norm_report_path,
+        make_report=lambda path: NormReport.from_path(path, debug=norm_debug),
+        transform=lambda ds, report: norm_examples(ds, norm_reporter=report),
     )
-    try:
-        save(norm_examples(ds, norm_reporter=report), output_path)
-    finally:
-        if report is not None:
-            report.close()
-    print(f"Wrote {output_path}")
-    if norm_report_path is not None:
-        print(f"Wrote {norm_report_path}")
 
 
 def filter(
@@ -56,16 +72,13 @@ def filter(
     output_path: str | Path,
     flaw_report_path: str | Path | None = "flaw_report.txt",
 ) -> None:
-    ds = load(input_path)
-    report = FlawReport.from_path(flaw_report_path) if flaw_report_path is not None else None
-    try:
-        save(filter_examples(ds, partial(keep, flaw_reporter=report)), output_path)
-    finally:
-        if report is not None:
-            report.close()
-    print(f"Wrote {output_path}")
-    if flaw_report_path is not None:
-        print(f"Wrote {flaw_report_path}")
+    _run_with_optional_report(
+        input_path=input_path,
+        output_path=output_path,
+        report_path=flaw_report_path,
+        make_report=FlawReport.from_path,
+        transform=lambda ds, report: filter_examples(ds, partial(keep, flaw_reporter=report)),
+    )
 
 
 def tokenize(
@@ -77,13 +90,7 @@ def tokenize(
     tokenizer_kwargs: dict | None = None,
     tokenize_debug: bool = False,
 ) -> None:
-    ds = load(input_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    report = (
-        TokenizeReport.from_path(tokenize_report_path, debug=tokenize_debug)
-        if tokenize_report_path is not None
-        else None
-    )
 
     effective_kwargs = {
         "truncation": True,
@@ -91,20 +98,15 @@ def tokenize(
         **(tokenizer_kwargs or {}),
     }
 
-    try:
-        save(
-            tokenize_examples(
-                ds,
-                tokenizer=tokenizer,
-                tokenize_reporter=report,
-                tokenizer_kwargs=effective_kwargs,
-            ),
-            output_path,
-        )
-    finally:
-        if report is not None:
-            report.close()
-
-    print(f"Wrote {output_path}")
-    if tokenize_report_path is not None:
-        print(f"Wrote {tokenize_report_path}")
+    _run_with_optional_report(
+        input_path=input_path,
+        output_path=output_path,
+        report_path=tokenize_report_path,
+        make_report=lambda path: TokenizeReport.from_path(path, debug=tokenize_debug),
+        transform=lambda ds, report: tokenize_examples(
+            ds,
+            tokenizer=tokenizer,
+            tokenize_reporter=report,
+            tokenizer_kwargs=effective_kwargs,
+        ),
+    )
