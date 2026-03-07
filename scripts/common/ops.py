@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
+from itertools import islice
 from pathlib import Path
 
 from datasets import load_dataset
@@ -10,7 +11,7 @@ from datapreprocessor.filter import FlawReport, filter_examples, keep
 from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import TokenizeReport, tokenize_examples
 
-from .io import load_examples, write_examples
+from .io import load, save
 
 
 def download(
@@ -19,11 +20,11 @@ def download(
     config: str,
     split: str,
     output: str | Path,
-    max_rows: int | None = None,
+    max_records: int | None = None,
 ) -> int:
     ds = load_dataset(dataset, config, split=split)
-    rows = ds if max_rows is None else (ex for i, ex in enumerate(ds) if i < max_rows)
-    write_examples(rows, output)
+    records = ds if max_records is None else islice(ds, max_records)
+    save(records, output)
     print(f"Wrote {output}")
     return 0
 
@@ -35,10 +36,10 @@ def norm(
     norm_report_path: str | Path,
     norm_debug: bool = False,
 ) -> int:
-    ds = load_examples(input_path)
+    ds = load(input_path)
     report = NormReport.from_path(norm_report_path, debug=norm_debug)
     try:
-        write_examples(norm_examples(ds, norm_reporter=report), output_path)
+        save(norm_examples(ds, norm_reporter=report), output_path)
     finally:
         report.close()
     print(f"Wrote {output_path}")
@@ -52,10 +53,10 @@ def filter(
     output_path: str | Path,
     flaw_report_path: str | Path,
 ) -> int:
-    ds = load_examples(input_path)
+    ds = load(input_path)
     report = FlawReport.from_path(flaw_report_path)
     try:
-        write_examples(filter_examples(ds, partial(keep, flaw_reporter=report)), output_path)
+        save(filter_examples(ds, partial(keep, flaw_reporter=report)), output_path)
     finally:
         report.close()
     print(f"Wrote {output_path}")
@@ -72,7 +73,7 @@ def tokenize(
     tokenizer_kwargs: dict | None = None,
     tokenize_debug: bool = False,
 ) -> int:
-    ds = load_examples(input_path)
+    ds = load(input_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     report = TokenizeReport.from_path(tokenize_report_path, debug=tokenize_debug)
 
@@ -83,7 +84,7 @@ def tokenize(
     }
 
     try:
-        write_examples(
+        save(
             tokenize_examples(
                 ds,
                 tokenizer=tokenizer,

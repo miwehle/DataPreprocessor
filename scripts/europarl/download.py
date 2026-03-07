@@ -14,7 +14,7 @@ def main() -> int:
         config="de-en",
         split="train",
         output=dataset_path("europarl", "raw", "europarl_de-en_train.jsonl"),
-        max_rows=None,
+        max_records=None,
     )
 
 
