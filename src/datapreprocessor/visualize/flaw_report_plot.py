@@ -5,6 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+
 try:
     from . import plot_utils as pu
 except ImportError:
@@ -75,7 +76,9 @@ def plot_flaw_counts(report_path: str | Path):
             label="en_flaws",
         )
         ax_text.set_xticks(x_text)
-        ax_text.set_xticklabels([pu.format_wrapped_label(f) for f in text_flaws], rotation=0, ha="center")
+        ax_text.set_xticklabels(
+            [pu.format_wrapped_label(f) for f in text_flaws], rotation=0, ha="center"
+        )
         ax_text.legend()
         pu.add_headroom(ax_text, list(de_bars) + list(en_bars))
         de_annotations = pu.annotate_bars(ax_text, de_bars)
@@ -98,9 +101,13 @@ def plot_flaw_counts(report_path: str | Path):
 
     if pair_flaws:
         x_pair = list(range(len(pair_flaws)))
-        pair_bars = ax_pair.bar(x_pair, [pair_counts.get(f, 0) for f in pair_flaws], width=0.6, label="pair_flaws")
+        pair_bars = ax_pair.bar(
+            x_pair, [pair_counts.get(f, 0) for f in pair_flaws], width=0.6, label="pair_flaws"
+        )
         ax_pair.set_xticks(x_pair)
-        ax_pair.set_xticklabels([pu.format_wrapped_label(f) for f in pair_flaws], rotation=0, ha="center")
+        ax_pair.set_xticklabels(
+            [pu.format_wrapped_label(f) for f in pair_flaws], rotation=0, ha="center"
+        )
         ax_pair.legend()
         pu.add_headroom(ax_pair, pair_bars)
         pair_annotations = pu.annotate_bars(ax_pair, pair_bars)
@@ -119,9 +126,13 @@ def plot_flaw_counts(report_path: str | Path):
     return (fig_text, ax_text), (fig_pair, ax_pair)
 
 
-def main() -> None:
-    plot_flaw_counts("data/europarl/reports/flaw_report.txt")
+def run(report_path: str | Path) -> None:
+    plot_flaw_counts(report_path)
     plt.show()
+
+
+def main() -> None:
+    run("data/europarl/reports/flaw_report.txt")
 
 
 if __name__ == "__main__":
