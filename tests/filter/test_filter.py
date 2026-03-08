@@ -21,3 +21,13 @@ def test_filter_with_keep():
         actual = root_dir / "flaw_report.txt"
         expected = root_dir / "tests" / "expected" / "filter" / "flaw_report.txt"
         assert actual.read_text(encoding="utf-8") == expected.read_text(encoding="utf-8")
+
+
+def test_filter_preserves_id_field():
+    ds = [
+        {"id": 10, "translation": {"de": "guten tag", "en": "good day"}},
+        {"id": 11, "translation": {"de": "x", "en": "x"}},
+    ]
+    out = list(filter_examples(ds, lambda ex: True))
+
+    assert [ex["id"] for ex in out] == [10, 11]

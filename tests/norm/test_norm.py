@@ -22,3 +22,10 @@ def test_norm_report_matches_expected():
         assert actual_report.read_text(encoding="utf-8") == expected_report.read_text(
             encoding="utf-8"
         )
+
+
+def test_norm_preserves_id_field():
+    ds = [{"id": 7, "translation": {"de": "  Hallo  ", "en": "  Hello  "}}]
+    out = list(norm_examples(ds))
+
+    assert out[0]["id"] == 7

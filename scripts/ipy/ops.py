@@ -1,15 +1,21 @@
 from __future__ import annotations
 
+"""Thin IPython-facing orchestration layer.
+
+This module coordinates I/O and delegates transformation logic to
+`src/datapreprocessor/*`. Keep business logic out of this file.
+"""
+
 from collections.abc import Callable, Iterable
 from contextlib import closing, nullcontext
 from functools import partial
 from pathlib import Path
 from typing import Any
 
-from datasets import load_dataset
 from transformers import AutoTokenizer
 
 from datapreprocessor.filter import FlawReport, filter_examples, keep
+from datapreprocessor.load import download_records
 from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import TokenizeReport, tokenize_examples
 
@@ -35,10 +41,27 @@ def _run_with_optional_report(
 
 
 def download(
-    *, dataset: str, config: str, split: str, output: str | Path, max_records: int | None = None
+    *,
+    dataset: str,
+    config: str,
+    split: str,
+    output: str | Path,
+    max_records: int | None = None,
+    include_ids: bool = True,
+    id_field: str = "id",
+    start_id: int = 0,
+    overwrite_ids: bool = False,
 ) -> None:
-    ds = load_dataset(dataset, config, split=split)
-    records = ds if max_records is None else ds.select(range(min(max_records, len(ds))))
+    records = download_records(
+        dataset=dataset,
+        config=config,
+        split=split,
+        max_records=max_records,
+        include_ids=include_ids,
+        id_field=id_field,
+        start_id=start_id,
+        overwrite_ids=overwrite_ids,
+    )
     save(records, output)
     print(f"Wrote {output}")
 
