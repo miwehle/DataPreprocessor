@@ -29,9 +29,6 @@ class TokenizeReport:
         record: dict[str, Any] = {"seq_no": self.seq_no, "token_lengths": token_lengths}
         self.out.write(f"{record}\\n")
 
-    def flush(self) -> None:
-        self.out.flush()
-
     def close(self) -> None:
         self.out.close()
 

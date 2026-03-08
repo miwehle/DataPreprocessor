@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
+from contextlib import closing, nullcontext
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -24,12 +25,9 @@ def _run_with_optional_report(
     transform: Callable[[Iterable[dict], Any | None], Iterable[dict]],
 ) -> None:
     ds = load(input_path)
-    report = make_report(report_path) if report_path is not None else None
-    try:
+    report_context = closing(make_report(report_path)) if report_path is not None else nullcontext(None)
+    with report_context as report:
         save(transform(ds, report), output_path)
-    finally:
-        if report is not None:
-            report.close()
 
     print(f"Wrote {output_path}")
     if report_path is not None:
