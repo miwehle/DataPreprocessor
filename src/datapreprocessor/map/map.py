@@ -24,7 +24,7 @@ def _normalize_target_ids(
     return normalized
 
 
-def to_training_schema(
+def map_examples(
     ds: Iterable[Example],
     *,
     id_key: str = "id",
@@ -35,7 +35,21 @@ def to_training_schema(
     tgt_eos_id: int | None = None,
     include_text: bool = False,
 ) -> Iterator[Example]:
-    """Project tokenized examples to a flat training schema for translation."""
+    """Map tokenized pipeline examples to the flat translation training schema.
+
+    This is the core function of the ``map`` stage: it turns nested
+    ``tokenized_translation`` output into the ``id/src_ids/tgt_ids`` structure
+    expected by Translator2 training.
+
+    If needed, it also normalizes target token ID sequences for training by
+    adding an explicit target BOS token at the front and ensuring a target EOS
+    token at the end.
+
+    Example:
+    tokenized ``{"de": {"input_ids": [10, 11]}, "en": {"input_ids": [20, 0]}}``
+    becomes ``{"src_ids": [10, 11], "tgt_ids": [99, 20, 0]}`` when
+    ``tgt_bos_id=99`` and ``tgt_eos_id=0``.
+    """
     for ex in ds:
         tokenized = ex[tokenized_key]
         src_ids = [int(x) for x in tokenized[src_lang]["input_ids"]]

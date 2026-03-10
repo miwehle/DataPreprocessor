@@ -1,3 +1,3 @@
-from .map import to_training_schema
+from .map import map_examples
 
-__all__ = ["to_training_schema"]
+__all__ = ["map_examples"]

@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import Any
 
 from datapreprocessor.filter import FlawReport, filter_examples, keep
-from datapreprocessor.load import download_records
-from datapreprocessor.map import to_training_schema
+from datapreprocessor.load import download_examples
+from datapreprocessor.map import map_examples
 from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import (
     TokenizeReport,
@@ -148,7 +148,7 @@ def download(
     start_id: int = 0,
     overwrite_ids: bool = False,
 ) -> None:
-    records = download_records(
+    records = download_examples(
         dataset=dataset,
         config=config,
         split=split,
@@ -230,7 +230,7 @@ def map(
     include_text: bool = False,
 ) -> None:
     ds = load(input_path)
-    mapped = to_training_schema(
+    mapped = map_examples(
         ds,
         id_key=id_key,
         tokenized_key=tokenized_key,

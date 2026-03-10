@@ -39,7 +39,7 @@ def attach_ids(
     return out
 
 
-def download_records(
+def download_examples(
     *,
     dataset: str,
     config: str,
