@@ -59,3 +59,27 @@ def test_ops_map_projects_to_training_schema_jsonl():
             "tgt_text": "hello",
         }
     ]
+
+
+def test_ops_map_can_write_target_bos_and_eos():
+    root = _artifacts_dir()
+    src = root / f"{uuid4().hex}.jsonl"
+    dst = root / f"{uuid4().hex}.jsonl"
+    _write_jsonl(
+        src,
+        [
+            {
+                "id": 1,
+                "translation": {"de": "hallo", "en": "hello"},
+                "tokenized_translation": {
+                    "de": {"input_ids": [10, 0]},
+                    "en": {"input_ids": [20, 0]},
+                },
+            }
+        ],
+    )
+
+    ops.map(input_path=src, output_path=dst, tgt_bos_id=99, tgt_eos_id=0)
+
+    out = _read_jsonl(dst)
+    assert out == [{"id": 1, "src_ids": [10, 0], "tgt_ids": [99, 20, 0]}]

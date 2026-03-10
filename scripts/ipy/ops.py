@@ -23,6 +23,7 @@ from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import (
     TokenizeReport,
     create_hf_tokenizer,
+    resolve_training_token_ids,
     tokenize_examples,
 )
 
@@ -224,6 +225,8 @@ def map(
     tokenized_key: str = "tokenized_translation",
     src_lang: str = "de",
     tgt_lang: str = "en",
+    tgt_bos_id: int | None = None,
+    tgt_eos_id: int | None = None,
     include_text: bool = False,
 ) -> None:
     ds = load(input_path)
@@ -233,6 +236,8 @@ def map(
         tokenized_key=tokenized_key,
         src_lang=src_lang,
         tgt_lang=tgt_lang,
+        tgt_bos_id=tgt_bos_id,
+        tgt_eos_id=tgt_eos_id,
         include_text=include_text,
     )
     save(mapped, output_path)
@@ -272,11 +277,16 @@ def preprocess(
         "tokenize_debug": False,
         **(tokenize_cfg or {}),
     }
+    training_token_ids = resolve_training_token_ids(
+        create_hf_tokenizer(effective_tokenize_cfg["tokenizer_model_name"])
+    )
     effective_map_cfg = {
         "id_key": effective_download_cfg["id_field"],
         "tokenized_key": "tokenized_translation",
         "src_lang": "de",
         "tgt_lang": "en",
+        "tgt_bos_id": training_token_ids["tgt_bos_id"],
+        "tgt_eos_id": training_token_ids["tgt_eos_id"],
         "include_text": False,
         **(map_cfg or {}),
     }
@@ -373,6 +383,8 @@ def preprocess(
                 "tokenized_key": effective_map_cfg["tokenized_key"],
                 "src_lang": effective_map_cfg["src_lang"],
                 "tgt_lang": effective_map_cfg["tgt_lang"],
+                "tgt_bos_id": effective_map_cfg["tgt_bos_id"],
+                "tgt_eos_id": effective_map_cfg["tgt_eos_id"],
                 "include_text": effective_map_cfg["include_text"],
             },
         ),

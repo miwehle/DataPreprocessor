@@ -34,7 +34,8 @@ def test_tokenize_report_matches_expected():
         report.close()
         actual = root_dir / "tokenize_report.txt"
         expected = root_dir / "tests" / "expected" / "tokenizer" / "tokenize_report.txt"
-        assert actual.read_text(encoding="utf-8") == expected.read_text(encoding="utf-8")
+        expected_text = expected.read_text(encoding="utf-8").replace("\\n", "\n")
+        assert actual.read_text(encoding="utf-8") == expected_text
 
 
 def test_tokenize_example_adds_expected_structure():

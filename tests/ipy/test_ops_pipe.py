@@ -38,11 +38,26 @@ def _patch_stage_spies(monkeypatch, calls: list[tuple[str, dict]]) -> None:
     monkeypatch.setattr(ops, "map", _record("map"))
 
 
+def _patch_training_token_ids(monkeypatch) -> None:
+    monkeypatch.setattr(ops, "create_hf_tokenizer", lambda model_name: object())
+    monkeypatch.setattr(
+        ops,
+        "resolve_training_token_ids",
+        lambda tokenizer: {
+            "src_pad_id": 58100,
+            "tgt_pad_id": 58100,
+            "tgt_bos_id": 58101,
+            "tgt_eos_id": 0,
+        },
+    )
+
+
 def test_ops_preprocess_calls_stages_in_order(monkeypatch):
     calls: list[tuple[str, dict]] = []
     monkeypatch.chdir(_run_dir())
     _patch_common_io(monkeypatch, capture_save=True, calls=calls)
     _patch_stage_spies(monkeypatch, calls)
+    _patch_training_token_ids(monkeypatch)
 
     ops.preprocess(
         download_cfg={"max_records": 123},
@@ -60,6 +75,7 @@ def test_ops_preprocess_accepts_path_overrides(monkeypatch):
     monkeypatch.chdir(_run_dir())
     _patch_common_io(monkeypatch, capture_save=False, calls=calls)
     _patch_stage_spies(monkeypatch, calls)
+    _patch_training_token_ids(monkeypatch)
 
     ops.preprocess(paths={"map_output": "C:/custom/final.jsonl"})
 
@@ -78,6 +94,7 @@ def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
         seen_map_output_paths.append(Path(kwargs["output_path"]))
 
     _patch_common_io(monkeypatch, capture_save=False, calls=[])
+    _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(ops, "download", fake_download)
     monkeypatch.setattr(ops, "norm", lambda **kwargs: None)
     monkeypatch.setattr(ops, "filter", lambda **kwargs: None)
@@ -90,3 +107,18 @@ def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
     assert seen_map_output_paths
     assert seen_raw_output_paths[0].name == "My-Data_Set_V1.raw.jsonl"
     assert seen_map_output_paths[0].name == "My-Data_Set_V1.mapped.jsonl"
+
+
+def test_ops_preprocess_passes_training_token_ids_to_map(monkeypatch):
+    calls: list[tuple[str, dict]] = []
+    monkeypatch.chdir(_run_dir())
+
+    _patch_common_io(monkeypatch, capture_save=False, calls=calls)
+    _patch_stage_spies(monkeypatch, calls)
+    _patch_training_token_ids(monkeypatch)
+
+    ops.preprocess()
+
+    map_call = next(kwargs for name, kwargs in calls if name == "map")
+    assert map_call["tgt_bos_id"] == 58101
+    assert map_call["tgt_eos_id"] == 0

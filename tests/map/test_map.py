@@ -41,3 +41,20 @@ def test_to_training_schema_can_include_text():
             "tgt_text": "good day",
         }
     ]
+
+
+def test_to_training_schema_can_prepend_tgt_bos_and_ensure_tgt_eos():
+    ds = [
+        {
+            "id": 9,
+            "translation": {"de": "guten morgen", "en": "good morning"},
+            "tokenized_translation": {
+                "de": {"input_ids": [10, 11, 0]},
+                "en": {"input_ids": [40, 41, 0]},
+            },
+        }
+    ]
+
+    out = list(to_training_schema(ds, tgt_bos_id=99, tgt_eos_id=0))
+
+    assert out == [{"id": 9, "src_ids": [10, 11, 0], "tgt_ids": [99, 40, 41, 0]}]
