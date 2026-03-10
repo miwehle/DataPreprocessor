@@ -82,12 +82,7 @@ def _current_git_status() -> str:
         return "local changes exist"
 
 
-def _default_paths(
-    *,
-    run_dir: Path,
-    dataset_name: str,
-    write_jsonl: bool,
-) -> dict[str, Path]:
+def _default_paths(*, run_dir: Path, dataset_name: str, write_jsonl: bool) -> dict[str, Path]:
     if write_jsonl:
         stage_root = run_dir
         raw_output = stage_root / f"{dataset_name}.raw.jsonl"
@@ -127,7 +122,9 @@ def _run_with_optional_report(
     transform: Callable[[Iterable[dict], Any | None], Iterable[dict]],
 ) -> None:
     ds = load(input_path)
-    report_context = closing(make_report(report_path)) if report_path is not None else nullcontext(None)
+    report_context = (
+        closing(make_report(report_path)) if report_path is not None else nullcontext(None)
+    )
     with report_context as report:
         save(transform(ds, report), output_path)
 
@@ -148,6 +145,7 @@ def download(
     start_id: int = 0,
     overwrite_ids: bool = False,
 ) -> None:
+    """Download one dataset split and optionally assign stable example IDs."""
     records = download_examples(
         dataset=dataset,
         config=config,
@@ -169,6 +167,7 @@ def norm(
     norm_report_path: str | Path | None = "norm_report.txt",
     norm_debug: bool = False,
 ) -> None:
+    """Normalize text examples and optionally write a norm report."""
     _run_with_optional_report(
         input_path=input_path,
         output_path=output_path,
@@ -184,6 +183,7 @@ def filter(
     output_path: str | Path,
     flaw_report_path: str | Path | None = "flaw_report.txt",
 ) -> None:
+    """Filter examples and optionally write a flaw report."""
     _run_with_optional_report(
         input_path=input_path,
         output_path=output_path,
@@ -202,6 +202,7 @@ def tokenize(
     tokenizer_kwargs: dict | None = None,
     tokenize_debug: bool = False,
 ) -> None:
+    """Tokenize both translation sides and write nested tokenized_translation output."""
     tokenizer = create_hf_tokenizer(tokenizer_model_name)
 
     effective_kwargs = {"truncation": True, "max_length": 256, **(tokenizer_kwargs or {})}
@@ -229,6 +230,7 @@ def map(
     tgt_eos_id: int | None = None,
     include_text: bool = False,
 ) -> None:
+    """Map tokenized examples to training fields and normalize target boundary tokens if needed."""
     ds = load(input_path)
     mapped = map_examples(
         ds,
@@ -257,7 +259,12 @@ def preprocess(
     map_cfg: dict[str, Any] | None = None,
     write_jsonl: bool = True,
 ) -> None:
-    """Run the end-to-end preprocessing pipeline with practical defaults."""
+    """Run the full preprocessing pipeline and produce translation-training output.
+
+    This does not yet create batched tensors. A later collation step (usually in
+    the training data loader) still pads src/tgt sequences to the batch-local max
+    length, stacks them into tensors, and returns the batch IDs alongside them.
+    """
 
     dataset_name = _dataset_name_for_filesystem(dataset)
 
@@ -298,9 +305,7 @@ def preprocess(
 
     run_dir = _next_available_run_dir(Path.cwd() / run_dir_name)
     effective_paths = _default_paths(
-        run_dir=run_dir,
-        dataset_name=dataset_name,
-        write_jsonl=write_jsonl,
+        run_dir=run_dir, dataset_name=dataset_name, write_jsonl=write_jsonl
     )
     if paths:
         for key, value in paths.items():

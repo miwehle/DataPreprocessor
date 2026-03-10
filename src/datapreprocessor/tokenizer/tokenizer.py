@@ -22,6 +22,7 @@ def create_hf_tokenizer(model_name: str) -> Tokenizer:
 
 
 def resolve_training_token_ids(tokenizer: Any) -> dict[str, int]:
+    """Resolve training token IDs from the tokenizer and synthesize target BOS if missing."""
     eos_token_id = getattr(tokenizer, "eos_token_id", None)
     pad_token_id = getattr(tokenizer, "pad_token_id", None)
     bos_token_id = getattr(tokenizer, "bos_token_id", None)
