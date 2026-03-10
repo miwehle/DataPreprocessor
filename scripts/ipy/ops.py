@@ -19,6 +19,7 @@ from typing import Any
 from datapreprocessor.filter import FlawReport, filter_examples, keep
 from datapreprocessor.load import download_examples
 from datapreprocessor.map import map_examples
+from datapreprocessor.metadata import build_dataset_meta
 from datapreprocessor.norm import NormReport, norm_examples
 from datapreprocessor.tokenizer import (
     TokenizeReport,
@@ -110,6 +111,7 @@ def _default_paths(*, run_dir: Path, dataset_name: str, write_jsonl: bool) -> di
         "flaw_report": run_dir / "flaw_report.txt",
         "tokenize_report": run_dir / "tokenize_report.txt",
         "preprocess_config": run_dir / "preprocess_config.json",
+        "dataset_meta": run_dir / "dataset_meta.json",
     }
 
 
@@ -338,6 +340,18 @@ def preprocess(
     with effective_paths["preprocess_config"].open("w", encoding="utf-8") as f:
         json.dump(parameters, f, ensure_ascii=False, indent=2)
     print(f"Wrote {effective_paths['preprocess_config']}")
+
+    dataset_meta = build_dataset_meta(
+        tokenizer_model_name=effective_tokenize_cfg["tokenizer_model_name"],
+        src_lang=effective_map_cfg["src_lang"],
+        tgt_lang=effective_map_cfg["tgt_lang"],
+        id_field=effective_map_cfg["id_key"],
+        tgt_bos_id=training_token_ids["tgt_bos_id"],
+        tgt_eos_id=training_token_ids["tgt_eos_id"],
+    )
+    with effective_paths["dataset_meta"].open("w", encoding="utf-8") as f:
+        json.dump(dataset_meta, f, ensure_ascii=False, indent=2)
+    print(f"Wrote {effective_paths['dataset_meta']}")
 
     stages: list[tuple[Callable[..., None], dict[str, Any]]] = [
         (

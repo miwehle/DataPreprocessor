@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from uuid import uuid4
@@ -122,3 +123,30 @@ def test_ops_preprocess_passes_training_token_ids_to_map(monkeypatch):
     map_call = next(kwargs for name, kwargs in calls if name == "map")
     assert map_call["tgt_bos_id"] == 58101
     assert map_call["tgt_eos_id"] == 0
+
+
+def test_ops_preprocess_writes_dataset_meta(monkeypatch):
+    run_dir = _run_dir()
+    monkeypatch.chdir(run_dir)
+
+    _patch_common_io(monkeypatch, capture_save=False, calls=[])
+    _patch_stage_spies(monkeypatch, [])
+    _patch_training_token_ids(monkeypatch)
+
+    ops.preprocess()
+
+    meta_path = run_dir / "europarl_de-en_train" / "dataset_meta.json"
+    assert meta_path.is_file()
+
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta == {
+        "schema_version": 1,
+        "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
+        "src_lang": "de",
+        "tgt_lang": "en",
+        "id_field": "id",
+        "src_field": "src_ids",
+        "tgt_field": "tgt_ids",
+        "tgt_bos_id": 58101,
+        "tgt_eos_id": 0,
+    }
