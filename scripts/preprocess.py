@@ -1,26 +1,12 @@
-"""Call the `preprocess` function from `src/api.py`.
+"""Run the dataset preprocessing pipeline from the command line.
 
-Parameters:
-- This script (`scripts/preprocess.py`) receives a YAML config file.
-- The config file defines the dataset, config, and split.
-- Nothing else needs to be specified; `preprocess` uses its default values.
-- Example: `configs/europarl_config.yaml`
-- Run it with: `python scripts/preprocess.py configs/europarl_config.yaml`
+This script receives a YAML config file. The config file defines the dataset, config, and split.
+Nothing else needs to be specified; `preprocess` uses its default values.
 
-Storage location for the downloaded raw data:
-- Next to the project directory, there is an `artifacts` directory.
-- Datasets are stored under `artifacts/datasets`.
-- Store raw data in a subdirectory that roughly matches the dataset name.
-- Example: `artifacts/datasets/europarl/raw`
+Example: `configs/europarl_config.yaml`
+Run it with: `python scripts/preprocess.py configs/europarl_config.yaml`
 
-Storage location for the fully preprocessed dataset:
-- Example: `artifacts/datasets/europarl/preprocessed`
-- Store the metadata required for the model and training in the same directory.
-
-Storage location for intermediate results:
-- Example: `artifacts/datasets/europarl/interim`
-- Do not create separate directories for steps such as `norm` or `filtered`;
-  encode the step name in the filename instead.
+Datasets are stored under `artifacts/datasets`.
 """
 
 from __future__ import annotations
