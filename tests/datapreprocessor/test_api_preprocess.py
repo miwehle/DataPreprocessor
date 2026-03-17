@@ -78,20 +78,6 @@ def test_ops_preprocess_calls_stages_in_order(monkeypatch):
     )
 
 
-def test_ops_preprocess_accepts_path_overrides(monkeypatch):
-    calls: list[tuple[str, dict]] = []
-    run_dir = _run_dir()
-    monkeypatch.chdir(run_dir)
-    _patch_common_io(monkeypatch, capture_save=False, calls=calls)
-    _patch_stage_spies(monkeypatch, calls)
-    _patch_training_token_ids(monkeypatch)
-    monkeypatch.setattr(ops, "_artifacts_root", lambda: run_dir / "artifacts" / "datasets")
-
-    ops.preprocess(paths={"map_output": "C:/custom/final.jsonl"})
-
-    assert calls[-1][1]["output_path"] == Path("C:/custom/final.jsonl")
-
-
 def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
     seen_raw_output_paths: list[Path] = []
     seen_map_output_paths: list[Path] = []

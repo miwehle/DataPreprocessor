@@ -255,7 +255,6 @@ def preprocess(
     dataset: str = "Helsinki-NLP/europarl",
     config: str = "de-en",
     split: str = "train",
-    paths: dict[str, str | Path] | None = None,
     download_cfg: dict[str, Any] | None = None,
     norm_cfg: dict[str, Any] | None = None,
     filter_cfg: dict[str, Any] | None = None,
@@ -311,15 +310,9 @@ def preprocess(
         dataset_dir_name = f"{dataset_dir_name}_{max_records}"
 
     dataset_dir = _next_available_run_dir(_artifacts_root() / dataset_dir_name)
-    effective_paths = _default_paths(
-        dataset_dir=dataset_dir, dataset_name=dataset_name, write_jsonl=write_jsonl
-    )
-    if paths:
-        for key, value in paths.items():
-            if key in effective_paths:
-                effective_paths[key] = Path(value)
+    paths = _default_paths(dataset_dir=dataset_dir, dataset_name=dataset_name, write_jsonl=write_jsonl)
 
-    for path in effective_paths.values():
+    for path in paths.values():
         path.parent.mkdir(parents=True, exist_ok=True)
 
     parameters = {
@@ -332,16 +325,16 @@ def preprocess(
         "config": config,
         "split": split,
         "write_jsonl": write_jsonl,
-        "paths": {key: str(value) for key, value in effective_paths.items()},
+        "paths": {key: str(value) for key, value in paths.items()},
         "download_cfg": effective_download_cfg,
         "norm_cfg": effective_norm_cfg,
         "filter_cfg": effective_filter_cfg,
         "tokenize_cfg": effective_tokenize_cfg,
         "map_cfg": effective_map_cfg,
     }
-    with effective_paths["preprocess_config"].open("w", encoding="utf-8") as f:
+    with paths["preprocess_config"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(parameters, f, sort_keys=False, allow_unicode=True)
-    print(f"Wrote {effective_paths['preprocess_config']}")
+    print(f"Wrote {paths['preprocess_config']}")
 
     stages: list[tuple[Callable[..., None], dict[str, Any]]] = [
         (
@@ -350,7 +343,7 @@ def preprocess(
                 "dataset": dataset,
                 "config": config,
                 "split": split,
-                "output": effective_paths["raw_output"],
+                "output": paths["raw_output"],
                 "max_records": effective_download_cfg["max_records"],
                 "include_ids": effective_download_cfg["include_ids"],
                 "id_field": effective_download_cfg["id_field"],
@@ -361,27 +354,27 @@ def preprocess(
         (
             norm,
             {
-                "input_path": effective_paths["raw_output"],
-                "output_path": effective_paths["norm_output"],
-                "norm_report_path": effective_paths["norm_report"],
+                "input_path": paths["raw_output"],
+                "output_path": paths["norm_output"],
+                "norm_report_path": paths["norm_report"],
                 "norm_debug": effective_norm_cfg["norm_debug"],
             },
         ),
         (
             filter,
             {
-                "input_path": effective_paths["norm_output"],
-                "output_path": effective_paths["filter_output"],
-                "flaw_report_path": effective_paths["flaw_report"],
+                "input_path": paths["norm_output"],
+                "output_path": paths["filter_output"],
+                "flaw_report_path": paths["flaw_report"],
                 **effective_filter_cfg,
             },
         ),
         (
             tokenize,
             {
-                "input_path": effective_paths["filter_output"],
-                "output_path": effective_paths["tokenize_output"],
-                "tokenize_report_path": effective_paths["tokenize_report"],
+                "input_path": paths["filter_output"],
+                "output_path": paths["tokenize_output"],
+                "tokenize_report_path": paths["tokenize_report"],
                 "tokenizer_model_name": effective_tokenize_cfg["tokenizer_model_name"],
                 "tokenizer_kwargs": effective_tokenize_cfg["tokenizer_kwargs"],
                 "tokenize_debug": effective_tokenize_cfg["tokenize_debug"],
@@ -390,8 +383,8 @@ def preprocess(
         (
             map,
             {
-                "input_path": effective_paths["tokenize_output"],
-                "output_path": effective_paths["map_output"],
+                "input_path": paths["tokenize_output"],
+                "output_path": paths["map_output"],
                 "id_key": effective_map_cfg["id_key"],
                 "tokenized_key": effective_map_cfg["tokenized_key"],
                 "src_lang": effective_map_cfg["src_lang"],
@@ -405,7 +398,7 @@ def preprocess(
     for stage_fn, stage_kwargs in stages:
         stage_fn(**stage_kwargs)
 
-    mapped = load(effective_paths["map_output"])
+    mapped = load(paths["map_output"])
     tokenizer_vocab_size = getattr(tokenizer, "vocab_size", None)
     if tokenizer_vocab_size is None:
         raise ValueError("Tokenizer must define vocab_size for dataset metadata.")
@@ -433,8 +426,8 @@ def preprocess(
         tgt_eos_id=training_token_ids["tgt_eos_id"],
         num_examples=len(mapped),
     )
-    with effective_paths["dataset_manifest"].open("w", encoding="utf-8") as f:
+    with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
-    print(f"Wrote {effective_paths['dataset_manifest']}")
-    save(mapped, effective_paths["preprocessed_output"])
-    print(f"Wrote {effective_paths['preprocessed_output']}")
+    print(f"Wrote {paths['dataset_manifest']}")
+    save(mapped, paths["preprocessed_output"])
+    print(f"Wrote {paths['preprocessed_output']}")
