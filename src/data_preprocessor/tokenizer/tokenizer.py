@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+from ..logging_utils import log_calls
 from .tokenize_example import Example, TokenizeReporter, Tokenizer, tokenize_example
 
 
+_log_calls = log_calls(lambda: Path(__file__).resolve().parents[4] / "artifacts" / "data_preprocessor.log")
+
+
+@_log_calls
 def create_hf_tokenizer(model_name: str) -> Tokenizer:
     if "opus-mt-" in model_name.lower():
         try:
@@ -21,6 +27,7 @@ def create_hf_tokenizer(model_name: str) -> Tokenizer:
     return AutoTokenizer.from_pretrained(model_name)
 
 
+@_log_calls
 def resolve_training_token_ids(tokenizer: Any) -> dict[str, int]:
     """Resolve training token IDs from the tokenizer and synthesize target BOS if missing."""
     eos_token_id = getattr(tokenizer, "eos_token_id", None)
@@ -47,6 +54,7 @@ def resolve_training_token_ids(tokenizer: Any) -> dict[str, int]:
     }
 
 
+@_log_calls
 def tokenize_examples(
     ds: Iterable[Example],
     tokenizer: Tokenizer,

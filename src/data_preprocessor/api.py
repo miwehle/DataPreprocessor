@@ -11,10 +11,8 @@ import subprocess
 from collections.abc import Callable, Iterable
 from contextlib import closing, nullcontext
 from datetime import UTC, datetime
-from functools import partial, wraps
-import logging
+from functools import partial
 from pathlib import Path
-from time import perf_counter
 from typing import Any
 
 import yaml
@@ -30,31 +28,12 @@ from data_preprocessor.tokenizer import (
     resolve_training_token_ids,
     tokenize_examples,
 )
+from data_preprocessor.logging_utils import log_calls
 
 from .io import load, save
 
 
-def _log_calls(func: Callable[..., Any]) -> Callable[..., Any]:
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        logger = logging.getLogger(__name__)
-        if not logger.handlers:
-            path = _artifacts_root().parent / "data_preprocessor.log"
-            path.parent.mkdir(parents=True, exist_ok=True)
-            handler = logging.FileHandler(path, encoding="utf-8")
-            handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
-            handler.formatter.default_msec_format = "%s,%03d"
-            logger.addHandler(handler)
-            logger.setLevel(logging.INFO)
-            logger.propagate = False
-        logger.info("Start %s", func.__name__)
-        started = perf_counter()
-        try:
-            return func(*args, **kwargs)
-        finally:
-            logger.info("Finished %s in %.3fs", func.__name__, perf_counter() - started)
-
-    return wrapper
+_log_calls = log_calls(lambda: _artifacts_root().parent / "data_preprocessor.log")
 
 
 def _dataset_name_for_filesystem(dataset: str) -> str:
