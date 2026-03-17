@@ -44,14 +44,14 @@ def download_examples(
     dataset: str,
     config: str,
     split: str,
-    max_records: int | None = None,
+    max_examples: int | None = None,
     include_ids: bool = True,
     id_field: str = "id",
     start_id: int = 0,
     overwrite_ids: bool = False,
 ) -> Dataset | list[Example]:
     ds = load_dataset(dataset, config, split=split)
-    records = ds if max_records is None else ds.select(range(min(max_records, len(ds))))
+    records = ds if max_examples is None else ds.select(range(min(max_examples, len(ds))))
     return attach_ids(
         records,
         include_ids=include_ids,

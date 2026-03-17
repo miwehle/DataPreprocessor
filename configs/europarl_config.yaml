@@ -4,7 +4,7 @@ download_cfg:
   dataset: Helsinki-NLP/europarl
   config: de-en
   split: train
-  max_records: 1000
+  max_examples: 1000
 
 tokenize_cfg:
   tokenizer_model_name: Helsinki-NLP/opus-mt-de-en

@@ -65,18 +65,16 @@ def test_ops_preprocess_calls_stages_in_order(monkeypatch):
     monkeypatch.setattr(ops, "_artifacts_root", lambda: run_dir / "artifacts" / "datasets")
 
     ops.preprocess(
-        download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train", "max_records": 123},
+        download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train", "max_examples": 123},
         tokenize_cfg={"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
         map_cfg={"src_lang": "de", "tgt_lang": "en", "include_text": True},
     )
 
     assert [name for name, _ in calls] == ["download", "norm", "filter", "tokenize", "map", "save"]
-    assert calls[0][1]["max_records"] == 123
+    assert calls[0][1]["max_examples"] == 123
     assert "include_ids" not in calls[0][1]
     assert calls[-2][1]["include_text"] is True
-    assert calls[0][1]["output"] == (
-        run_dir / "artifacts" / "datasets" / "europarl_123" / "raw" / "europarl.raw.jsonl"
-    )
+    assert calls[0][1]["output"] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train_123" / "raw" / "europarl.raw.jsonl"
 
 
 def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
@@ -111,7 +109,7 @@ def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
     assert seen_raw_output_paths[0].name == "My-Data_Set_V1.raw.jsonl"
     assert seen_map_output_paths[0].name == "My-Data_Set_V1.mapped.jsonl"
     assert seen_raw_output_paths[0].parent.name == "raw"
-    assert seen_raw_output_paths[0].parent.parent.name == "My-Data_Set_V1"
+    assert seen_raw_output_paths[0].parent.parent.name == "My-Data_Set_V1_de-en_train"
     assert seen_raw_output_paths[0].parent.parent.parent.name == "datasets"
     assert seen_map_output_paths[0].parent.name == "interim"
 
@@ -153,9 +151,7 @@ def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
 
-    manifest_path = (
-        run_dir / "artifacts" / "datasets" / "europarl" / "preprocessed" / "dataset_manifest.yaml"
-    )
+    manifest_path = run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "preprocessed" / "dataset_manifest.yaml"
     assert manifest_path.is_file()
 
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
@@ -186,7 +182,9 @@ def test_ops_preprocess_uses_incremented_dataset_dir(monkeypatch):
     _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(ops, "_artifacts_root", lambda: run_dir / "artifacts" / "datasets")
 
-    (run_dir / "artifacts" / "datasets" / "europarl").mkdir(parents=True, exist_ok=True)
+    (run_dir / "artifacts" / "datasets" / "europarl_de-en_train").mkdir(
+        parents=True, exist_ok=True
+    )
 
     ops.preprocess(
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
@@ -194,4 +192,6 @@ def test_ops_preprocess_uses_incremented_dataset_dir(monkeypatch):
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
 
-    assert (run_dir / "artifacts" / "datasets" / "europarl (1)" / "preprocessed").is_dir()
+    assert (
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)" / "preprocessed"
+    ).is_dir()

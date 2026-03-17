@@ -148,7 +148,7 @@ def download(
     config: str,
     split: str,
     output: str | Path,
-    max_records: int | None = None,
+    max_examples: int | None = None,
     include_ids: bool = True,
     id_field: str = "id",
     start_id: int = 0,
@@ -159,7 +159,7 @@ def download(
         dataset=dataset,
         config=config,
         split=split,
-        max_records=max_records,
+        max_examples=max_examples,
         include_ids=include_ids,
         id_field=id_field,
         start_id=start_id,
@@ -291,7 +291,7 @@ def preprocess(
     dataset_name = _dataset_name_for_filesystem(download_cfg["dataset"])
 
     resolved_download_cfg = {
-        "max_records": None,
+        "max_examples": None,
         "include_ids": True,
         "id_field": "id",
         "start_id": 0,
@@ -314,10 +314,12 @@ def preprocess(
         **map_cfg,
     }
 
-    dataset_dir_name = dataset_name
-    max_records = resolved_download_cfg["max_records"]
-    if max_records is not None:
-        dataset_dir_name = f"{dataset_dir_name}_{max_records}"
+    dataset_dir_name = (
+        f"{dataset_name}_{resolved_download_cfg['config']}_{resolved_download_cfg['split']}"
+    )
+    max_examples = resolved_download_cfg["max_examples"]
+    if max_examples is not None:
+        dataset_dir_name = f"{dataset_dir_name}_{max_examples}"
 
     dataset_dir = _next_available_run_dir(_artifacts_root() / dataset_dir_name)
     paths = _default_paths(dataset_dir=dataset_dir, dataset_name=dataset_name, write_jsonl=write_jsonl)
@@ -332,7 +334,6 @@ def preprocess(
         "data_preprocessor_git_status": _current_git_status(),
         "dataset_schema_version": "1",
         "write_jsonl": write_jsonl,
-        "paths": {key: str(value) for key, value in paths.items()},
         "download_cfg": resolved_download_cfg,
         "norm_cfg": norm_cfg,
         "filter_cfg": filter_cfg,
