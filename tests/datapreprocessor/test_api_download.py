@@ -5,8 +5,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from datasets import Dataset
-from datapreprocessor import api as ops
-import datapreprocessor.load.download as load_module
+from data_preprocessor import api as ops
+import data_preprocessor.load.download as load_module
 
 
 def _read_jsonl(path):

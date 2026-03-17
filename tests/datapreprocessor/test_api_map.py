@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from datapreprocessor import api as ops
+from data_preprocessor import api as ops
 
 
 def _artifacts_dir() -> Path:

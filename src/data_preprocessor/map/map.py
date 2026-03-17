@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 
-from datapreprocessor.types import Example
+from data_preprocessor.types import Example
 
 
 def _normalize_target_ids(

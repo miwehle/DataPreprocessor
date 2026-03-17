@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 try:
     # Works when run from project root with src on PYTHONPATH.
-    from datapreprocessor.visualize.flaw_report_plot import plot_flaw_counts
+    from data_preprocessor.visualize.flaw_report_plot import plot_flaw_counts
 except ModuleNotFoundError:
     # Fallback for direct execution from this folder.
     from flaw_report_plot import plot_flaw_counts

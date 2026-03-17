@@ -5,8 +5,8 @@ matplotlib.use("Agg")
 from pathlib import Path
 from uuid import uuid4
 
-from datapreprocessor.visualize.pair_length_hist_plot import load_pair_lengths
-from datapreprocessor.visualize.pair_length_hist_plot import plot_pair_length_histogram
+from data_preprocessor.visualize.pair_length_hist_plot import load_pair_lengths
+from data_preprocessor.visualize.pair_length_hist_plot import plot_pair_length_histogram
 
 
 def _local_temp_jsonl(lines: list[str]) -> Path:

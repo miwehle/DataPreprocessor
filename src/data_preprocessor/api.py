@@ -1,7 +1,7 @@
 """Thin public orchestration layer.
 
 This module coordinates I/O and delegates transformation logic to the
-specialized `datapreprocessor.*` modules. Keep business logic out of this file.
+specialized `data_preprocessor.*` modules. Keep business logic out of this file.
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ from typing import Any
 
 import yaml
 
-from datapreprocessor.filter import FlawReport, filter_examples, keep
-from datapreprocessor.load import download_examples
-from datapreprocessor.map import map_examples
-from datapreprocessor.metadata import build_dataset_meta
-from datapreprocessor.norm import NormReport, norm_examples
-from datapreprocessor.tokenizer import (
+from data_preprocessor.filter import FlawReport, filter_examples, keep
+from data_preprocessor.load import download_examples
+from data_preprocessor.map import map_examples
+from data_preprocessor.metadata import build_dataset_meta
+from data_preprocessor.norm import NormReport, norm_examples
+from data_preprocessor.tokenizer import (
     TokenizeReport,
     create_hf_tokenizer,
     resolve_training_token_ids,
@@ -349,8 +349,8 @@ def preprocess(
     parameters = {
         "schema_version": "1",
         "created_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-        "datapreprocessor_git_commit": _current_git_commit_short(),
-        "datapreprocessor_git_status": _current_git_status(),
+        "data_preprocessor_git_commit": _current_git_commit_short(),
+        "data_preprocessor_git_status": _current_git_status(),
         "dataset_schema_version": "1",
         "write_jsonl": write_jsonl,
         "paths": {key: str(value) for key, value in paths.items()},

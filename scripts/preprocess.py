@@ -21,7 +21,7 @@ OPTIONAL_CFG_KEYS = ("download_cfg", "norm_cfg", "filter_cfg", "tokenize_cfg", "
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from datapreprocessor.api import preprocess
+from data_preprocessor.api import preprocess
 
 
 def main() -> int:

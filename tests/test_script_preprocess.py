@@ -36,7 +36,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
 
     monkeypatch.setattr(sys, "argv", ["preprocess.py", str(config_path)])
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "src"))
-    import datapreprocessor.api as api
+    import data_preprocessor.api as api
 
     monkeypatch.setattr(api, "preprocess", fake_preprocess)
 

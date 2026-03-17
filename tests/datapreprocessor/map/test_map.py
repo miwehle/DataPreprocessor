@@ -1,4 +1,4 @@
-from datapreprocessor.map import map_examples
+from data_preprocessor.map import map_examples
 
 
 def test_map_examples_maps_required_fields():

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from datapreprocessor.tokenizer import TokenizeReport, tokenize_example, tokenize_examples
+from data_preprocessor.tokenizer import TokenizeReport, tokenize_example, tokenize_examples
 
 
 class DummyTokenizer:

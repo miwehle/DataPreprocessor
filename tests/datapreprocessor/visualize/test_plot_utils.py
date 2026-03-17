@@ -1,9 +1,9 @@
-from datapreprocessor.visualize.plot_utils import format_wrapped_label
-from datapreprocessor.visualize.plot_utils import attach_y_scale_toggle
-from datapreprocessor.visualize.plot_utils import attach_x_scale_toggle
-from datapreprocessor.visualize.plot_utils import set_y_axis_scale
-from datapreprocessor.visualize.plot_utils import set_x_axis_scale
-from datapreprocessor.visualize.plot_utils import integer_histogram_bins
+from data_preprocessor.visualize.plot_utils import format_wrapped_label
+from data_preprocessor.visualize.plot_utils import attach_y_scale_toggle
+from data_preprocessor.visualize.plot_utils import attach_x_scale_toggle
+from data_preprocessor.visualize.plot_utils import set_y_axis_scale
+from data_preprocessor.visualize.plot_utils import set_x_axis_scale
+from data_preprocessor.visualize.plot_utils import integer_histogram_bins
 
 
 def test_format_wrapped_label_prefers_break_before_opening_paren() -> None:

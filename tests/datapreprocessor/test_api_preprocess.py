@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import yaml
 
-from datapreprocessor import api as ops
+from data_preprocessor import api as ops
 
 
 def _run_dir() -> Path:
