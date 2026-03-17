@@ -74,7 +74,13 @@ def test_ops_preprocess_calls_stages_in_order(monkeypatch):
     assert calls[0][1]["max_examples"] == 123
     assert "include_ids" not in calls[0][1]
     assert calls[-2][1]["include_text"] is True
-    assert calls[0][1]["output"] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train_123" / "raw" / "europarl.raw.jsonl"
+    assert calls[0][1]["output"] == (
+        run_dir
+        / "artifacts"
+        / "datasets"
+        / "europarl_de-en_train_123_staging"
+        / "europarl_raw.jsonl"
+    )
 
 
 def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
@@ -106,12 +112,11 @@ def test_ops_preprocess_derives_filesystem_dataset_name(monkeypatch):
 
     assert seen_raw_output_paths
     assert seen_map_output_paths
-    assert seen_raw_output_paths[0].name == "My-Data_Set_V1.raw.jsonl"
-    assert seen_map_output_paths[0].name == "My-Data_Set_V1.mapped.jsonl"
-    assert seen_raw_output_paths[0].parent.name == "raw"
-    assert seen_raw_output_paths[0].parent.parent.name == "My-Data_Set_V1_de-en_train"
-    assert seen_raw_output_paths[0].parent.parent.parent.name == "datasets"
-    assert seen_map_output_paths[0].parent.name == "interim"
+    assert seen_raw_output_paths[0].name == "My-Data_Set_V1_raw.jsonl"
+    assert seen_map_output_paths[0].name == "My-Data_Set_V1_mapped.jsonl"
+    assert seen_raw_output_paths[0].parent.name == "My-Data_Set_V1_de-en_train_staging"
+    assert seen_raw_output_paths[0].parent.parent.name == "datasets"
+    assert seen_map_output_paths[0].parent.name == "My-Data_Set_V1_de-en_train_staging"
 
 
 def test_ops_preprocess_passes_training_token_ids_to_map(monkeypatch):
@@ -151,7 +156,13 @@ def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
 
-    manifest_path = run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "preprocessed" / "dataset_manifest.yaml"
+    manifest_path = (
+        run_dir
+        / "artifacts"
+        / "datasets"
+        / "europarl_de-en_train"
+        / "dataset_manifest.yaml"
+    )
     assert manifest_path.is_file()
 
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
@@ -175,14 +186,17 @@ def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
 
 
 def test_ops_preprocess_uses_incremented_dataset_dir(monkeypatch):
+    calls: list[tuple[str, dict]] = []
     run_dir = _run_dir()
     monkeypatch.chdir(run_dir)
-    _patch_common_io(monkeypatch, capture_save=False, calls=[])
-    _patch_stage_spies(monkeypatch, [])
+    _patch_common_io(monkeypatch, capture_save=True, calls=calls)
+    _patch_stage_spies(monkeypatch, calls)
     _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(ops, "_artifacts_root", lambda: run_dir / "artifacts" / "datasets")
 
-    (run_dir / "artifacts" / "datasets" / "europarl_de-en_train").mkdir(
+    (
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train"
+    ).mkdir(
         parents=True, exist_ok=True
     )
 
@@ -193,5 +207,11 @@ def test_ops_preprocess_uses_incremented_dataset_dir(monkeypatch):
     )
 
     assert (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)" / "preprocessed"
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)"
     ).is_dir()
+    assert calls[0][1]["output"] == (
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train_staging (1)" / "europarl_raw.jsonl"
+    )
+    assert calls[-1][1]["output_path"] == (
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)"
+    )

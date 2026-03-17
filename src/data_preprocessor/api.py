@@ -45,14 +45,24 @@ def _dataset_name_for_filesystem(dataset: str) -> str:
     return "dataset"
 
 
+def _run_output_roots(run_root: Path, run_index: int | None = None) -> tuple[Path, Path]:
+    suffix = f" ({run_index})" if run_index is not None else ""
+    return (
+        run_root.with_name(f"{run_root.name}_staging{suffix}"),
+        run_root.with_name(f"{run_root.name}{suffix}"),
+    )
+
+
 def _next_available_run_dir(base_dir: Path) -> Path:
-    if not base_dir.exists():
+    staging_dir, final_dir = _run_output_roots(base_dir)
+    if not staging_dir.exists() and not final_dir.exists():
         return base_dir
 
     i = 1
     while True:
-        candidate = Path(f"{base_dir} ({i})")
-        if not candidate.exists():
+        candidate = base_dir.with_name(f"{base_dir.name} ({i})")
+        staging_dir, final_dir = _run_output_roots(base_dir, i)
+        if not staging_dir.exists() and not final_dir.exists():
             return candidate
         i += 1
 
@@ -93,18 +103,26 @@ def _current_git_status() -> str:
 
 
 def _default_paths(*, dataset_dir: Path, dataset_name: str, write_jsonl: bool) -> dict[str, Path]:
+    run_index = None
+    match = re.search(r" \((\d+)\)$", dataset_dir.name)
+    if match:
+        run_index = int(match.group(1))
+        dataset_dir = dataset_dir.with_name(dataset_dir.name[: match.start()])
+
+    staging_dir, preprocessed_dir = _run_output_roots(dataset_dir, run_index)
+
     if write_jsonl:
-        raw_output = dataset_dir / "raw" / f"{dataset_name}.raw.jsonl"
-        norm_output = dataset_dir / "interim" / f"{dataset_name}.norm.jsonl"
-        filter_output = dataset_dir / "interim" / f"{dataset_name}.filtered.jsonl"
-        tokenize_output = dataset_dir / "interim" / f"{dataset_name}.tokenized.jsonl"
-        map_output = dataset_dir / "interim" / f"{dataset_name}.mapped.jsonl"
+        raw_output = staging_dir / f"{dataset_name}_raw.jsonl"
+        norm_output = staging_dir / f"{dataset_name}_norm.jsonl"
+        filter_output = staging_dir / f"{dataset_name}_filtered.jsonl"
+        tokenize_output = staging_dir / f"{dataset_name}_tokenized.jsonl"
+        map_output = staging_dir / f"{dataset_name}_mapped.jsonl"
     else:
-        raw_output = dataset_dir / "raw" / f"{dataset_name}.raw"
-        norm_output = dataset_dir / "interim" / f"{dataset_name}.norm"
-        filter_output = dataset_dir / "interim" / f"{dataset_name}.filtered"
-        tokenize_output = dataset_dir / "interim" / f"{dataset_name}.tokenized"
-        map_output = dataset_dir / "interim" / f"{dataset_name}.mapped"
+        raw_output = staging_dir / f"{dataset_name}_raw"
+        norm_output = staging_dir / f"{dataset_name}_norm"
+        filter_output = staging_dir / f"{dataset_name}_filtered"
+        tokenize_output = staging_dir / f"{dataset_name}_tokenized"
+        map_output = staging_dir / f"{dataset_name}_mapped"
 
     return {
         "raw_output": raw_output,
@@ -112,12 +130,12 @@ def _default_paths(*, dataset_dir: Path, dataset_name: str, write_jsonl: bool) -
         "filter_output": filter_output,
         "tokenize_output": tokenize_output,
         "map_output": map_output,
-        "preprocessed_output": dataset_dir / "preprocessed" / f"{dataset_name}.preprocessed",
-        "norm_report": dataset_dir / "interim" / "norm_report.txt",
-        "flaw_report": dataset_dir / "interim" / "flaw_report.txt",
-        "tokenize_report": dataset_dir / "interim" / "tokenize_report.txt",
-        "preprocess_config": dataset_dir / "preprocessed" / "preprocess_config.yaml",
-        "dataset_manifest": dataset_dir / "preprocessed" / "dataset_manifest.yaml",
+        "preprocessed_output": preprocessed_dir,
+        "norm_report": staging_dir / "norm_report.txt",
+        "flaw_report": staging_dir / "flaw_report.txt",
+        "tokenize_report": staging_dir / "tokenize_report.txt",
+        "preprocess_config": preprocessed_dir / "preprocess_config.yaml",
+        "dataset_manifest": preprocessed_dir / "dataset_manifest.yaml",
     }
 
 
