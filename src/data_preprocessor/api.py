@@ -142,10 +142,6 @@ def _run_with_optional_report(
     with report_context as report:
         save(transform(ds, report), output_path)
 
-    print(f"Wrote {output_path}")
-    if report_path is not None:
-        print(f"Wrote {report_path}")
-
 
 @_log_calls
 def download(
@@ -161,7 +157,7 @@ def download(
     overwrite_ids: bool = False,
 ) -> None:
     """Download one dataset split and optionally assign stable example IDs."""
-    records = download_examples(
+    examples = download_examples(
         dataset=dataset,
         config=config,
         split=split,
@@ -171,8 +167,7 @@ def download(
         start_id=start_id,
         overwrite_ids=overwrite_ids,
     )
-    save(records, output)
-    print(f"Wrote {output}")
+    save(examples, output)
 
 
 @_log_calls
@@ -262,7 +257,6 @@ def map(
         include_text=include_text,
     )
     save(mapped, output_path)
-    print(f"Wrote {output_path}")
 
 
 @_log_calls
@@ -348,7 +342,6 @@ def preprocess(
     }
     with paths["preprocess_config"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(parameters, f, sort_keys=False, allow_unicode=True)
-    print(f"Wrote {paths['preprocess_config']}")
 
     stages: list[tuple[Callable[..., None], dict[str, Any]]] = [
         (
@@ -429,6 +422,4 @@ def preprocess(
     )
     with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
-    print(f"Wrote {paths['dataset_manifest']}")
     save(mapped, paths["preprocessed_output"])
-    print(f"Wrote {paths['preprocessed_output']}")
