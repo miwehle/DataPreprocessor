@@ -110,26 +110,14 @@ def _default_paths(*, dataset_dir: Path, dataset_name: str, write_jsonl: bool) -
         dataset_dir = dataset_dir.with_name(dataset_dir.name[: match.start()])
 
     staging_dir, preprocessed_dir = _run_output_roots(dataset_dir, run_index)
-
-    if write_jsonl:
-        raw_output = staging_dir / f"{dataset_name}_raw.jsonl"
-        norm_output = staging_dir / f"{dataset_name}_norm.jsonl"
-        filter_output = staging_dir / f"{dataset_name}_filtered.jsonl"
-        tokenize_output = staging_dir / f"{dataset_name}_tokenized.jsonl"
-        map_output = staging_dir / f"{dataset_name}_mapped.jsonl"
-    else:
-        raw_output = staging_dir / f"{dataset_name}_raw"
-        norm_output = staging_dir / f"{dataset_name}_norm"
-        filter_output = staging_dir / f"{dataset_name}_filtered"
-        tokenize_output = staging_dir / f"{dataset_name}_tokenized"
-        map_output = staging_dir / f"{dataset_name}_mapped"
+    suffix = ".jsonl" if write_jsonl else ""
 
     return {
-        "raw_output": raw_output,
-        "norm_output": norm_output,
-        "filter_output": filter_output,
-        "tokenize_output": tokenize_output,
-        "map_output": map_output,
+        "raw_output": staging_dir / f"{dataset_name}_raw{suffix}",
+        "norm_output": staging_dir / f"{dataset_name}_norm{suffix}",
+        "filter_output": staging_dir / f"{dataset_name}_filtered{suffix}",
+        "tokenize_output": staging_dir / f"{dataset_name}_tokenized{suffix}",
+        "map_output": staging_dir / f"{dataset_name}_mapped{suffix}",
         "preprocessed_output": preprocessed_dir,
         "norm_report": staging_dir / "norm_report.txt",
         "flaw_report": staging_dir / "flaw_report.txt",
