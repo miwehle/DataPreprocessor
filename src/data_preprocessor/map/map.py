@@ -11,6 +11,7 @@ def _normalize_target_ids(
     tgt_bos_id: int | None,
     tgt_eos_id: int | None,
 ) -> list[int]:
+    """Ensure IDs start with BOS and end with EOS when configured."""
     normalized = [int(x) for x in input_ids]
 
     if tgt_bos_id is not None:
