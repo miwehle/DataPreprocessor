@@ -4,7 +4,12 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from ..logging_utils import log_calls
-from .tokenize_example import Example, TokenizeReporter, Tokenizer, tokenize_example
+from .tokenize_example import (
+    Example,
+    TokenizeReporter,
+    Tokenizer,
+    tokenize_example,
+)
 
 
 _log_calls = log_calls(lambda: Path(__file__).resolve().parents[4] / "artifacts" / "data_preprocessor.log")
@@ -59,10 +64,21 @@ def tokenize_examples(
     ds: Iterable[Example],
     tokenizer: Tokenizer,
     tokenize_reporter: TokenizeReporter | None = None,
+    max_src_len: int | None = None,
+    src_lang: str = "de",
     **tokenize_example_kwargs,
 ) -> Iterator[Example]:
-    """Yield tokenized examples from an input iterable."""
+    """Yield tokenized examples and optionally drop examples with overlong src tokens."""
     for ex in ds:
-        yield tokenize_example(
-            ex, tokenizer=tokenizer, tokenize_reporter=tokenize_reporter, **tokenize_example_kwargs
-        )
+        tokenized = tokenize_example(ex, tokenizer=tokenizer, **tokenize_example_kwargs)
+        tokenized_translation = tokenized["tokenized_translation"]
+        src_len = len(tokenized_translation[src_lang]["input_ids"])
+        if max_src_len is not None and src_len > max_src_len:
+            if tokenize_reporter is not None:
+                tokenize_reporter.note_src_too_long(ex.get("id"))
+            continue
+        if tokenize_reporter is not None:
+            tokenize_reporter.note_tokenization(
+                {lang: len(data["input_ids"]) for lang, data in tokenized_translation.items()}
+            )
+        yield tokenized

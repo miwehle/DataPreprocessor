@@ -8,6 +8,7 @@ download_cfg:
 
 tokenize_cfg:
   tokenizer_model_name: Helsinki-NLP/opus-mt-de-en
+  max_src_len: null
 
 map_cfg:
   src_lang: de

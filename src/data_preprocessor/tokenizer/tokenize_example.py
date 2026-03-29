@@ -12,6 +12,7 @@ class Tokenizer(Protocol):
 
 class TokenizeReporter(Protocol):
     def note_tokenization(self, token_lengths: dict[str, int]) -> None: ...
+    def note_src_too_long(self, ex_id: Any) -> None: ...
 
 
 class TokenizeReport:
@@ -27,6 +28,11 @@ class TokenizeReport:
     def note_tokenization(self, token_lengths: dict[str, int]) -> None:
         self.seq_no += 1
         record: dict[str, Any] = {"seq_no": self.seq_no, "token_lengths": token_lengths}
+        self.out.write(f"{record}\n")
+
+    def note_src_too_long(self, ex_id: Any) -> None:
+        self.seq_no += 1
+        record: dict[str, Any] = {"seq_no": self.seq_no, "removed_id": ex_id}
         self.out.write(f"{record}\n")
 
     def close(self) -> None:

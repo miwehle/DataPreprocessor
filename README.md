@@ -8,6 +8,8 @@ Kleine, klare Pipeline zur Aufbereitung von de-en Beispielen fuer Seq2Seq-Traini
 - `norm`: normalisiert Texte (z. B. Whitespace/Zeichenbereinigung) ohne Seiteneffekte am Input.
 - `filter`: entfernt problematische Beispiele ueber klar definierte Praedikate.
 - `tokenize`: erzeugt modellfertige Token-Features fuer beide Sprachen.
+  Wenn `max_src_len` konfiguriert ist, verwirft `tokenize` ausserdem komplette
+  Beispiele, deren untrunkierte `src`-Tokenliste diese Grenze ueberschreitet.
 
 ## Mehrwert gegenueber ad-hoc Implementierungen
 - Einfache End-to-End-Orchestrierung statt Boilerplate pro Experiment.

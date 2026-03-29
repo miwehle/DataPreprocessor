@@ -24,7 +24,7 @@ def test_tokenize_report_matches_expected():
         ds,
         tokenizer=DummyTokenizer(),
         tokenize_reporter=report,
-        tokenizer_kwargs={"truncation": True, "max_length": 256},
+        tokenizer_kwargs=None,
     )
 
     try:
@@ -59,3 +59,31 @@ def test_tokenize_example_adds_expected_structure():
     assert de_tok["attention_mask"] == [1, 1, 1]
     assert en_tok["input_ids"] == [3, 3, 5]
     assert en_tok["attention_mask"] == [1, 1, 1]
+
+
+def test_tokenize_examples_removes_examples_with_src_tokens_longer_than_max_src_len_and_reports_it():
+    examples = [
+        {"id": 1, "translation": {"de": "eins zwei drei vier", "en": "one two three four"}},
+        {"id": 2, "translation": {"de": "eins zwei", "en": "one two"}},
+    ]
+    report_path = Path(".local_tmp") / "tokenize_report_remove_case.txt"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report = TokenizeReport.from_path(report_path)
+
+    try:
+        actual = list(
+            tokenize_examples(
+                examples,
+                tokenizer=DummyTokenizer(),
+                tokenize_reporter=report,
+                max_src_len=3,
+            )
+        )
+    finally:
+        report.close()
+
+    assert [example["id"] for example in actual] == [2]
+    assert report_path.read_text(encoding="utf-8") == (
+        "{'seq_no': 1, 'removed_id': 1}\n"
+        "{'seq_no': 2, 'token_lengths': {'de': 2, 'en': 2}}\n"
+    )

@@ -223,11 +223,18 @@ def tokenize(
     tokenizer_model_name: str,
     tokenizer_kwargs: dict | None = None,
     tokenize_debug: bool = False,
+    max_src_len: int | None = None,
+    src_lang: str = "de",
 ) -> None:
-    """Tokenize both translation sides and write nested tokenized_translation output."""
-    tokenizer = create_hf_tokenizer(tokenizer_model_name)
+    """Tokenize both translation sides and write nested tokenized_translation output.
 
-    effective_kwargs = {"truncation": True, "max_length": 256, **(tokenizer_kwargs or {})}
+    If ``max_src_len`` is set, examples whose untruncated source token list is
+    longer than that limit are dropped entirely before tokenized output is
+    written.
+    """
+    tokenizer = create_hf_tokenizer(tokenizer_model_name)
+    if max_src_len is not None and max_src_len < 0:
+        raise ValueError("max_src_len must be >= 0 or None.")
 
     _run_with_optional_report(
         input_path=input_path,
@@ -235,7 +242,12 @@ def tokenize(
         report_path=tokenize_report_path,
         make_report=lambda path: TokenizeReport.from_path(path, debug=tokenize_debug),
         transform=lambda ds, report: tokenize_examples(
-            ds, tokenizer=tokenizer, tokenize_reporter=report, tokenizer_kwargs=effective_kwargs
+            ds,
+            tokenizer=tokenizer,
+            tokenize_reporter=report,
+            max_src_len=max_src_len,
+            src_lang=src_lang,
+            tokenizer_kwargs=tokenizer_kwargs,
         ),
     )
 
@@ -310,6 +322,8 @@ def preprocess(
     resolved_tokenize_cfg = {
         "tokenizer_kwargs": None,
         "tokenize_debug": False,
+        "max_src_len": None,
+        "src_lang": map_cfg.get("src_lang", "de"),
         **tokenize_cfg,
     }
     tokenizer = create_hf_tokenizer(resolved_tokenize_cfg["tokenizer_model_name"])
@@ -384,7 +398,7 @@ def preprocess(
                 "input_path": paths["filter_output"],
                 "output_path": paths["tokenize_output"],
                 "tokenize_report_path": paths["tokenize_report"],
-                **tokenize_cfg,
+                **resolved_tokenize_cfg,
             },
         ),
         (
