@@ -18,7 +18,7 @@ def _read_jsonl(path):
 
 
 def _make_out_path() -> Path:
-    root = Path(__file__).resolve().parents[2] / "tests" / ".test_artifacts"
+    root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests"
     root.mkdir(parents=True, exist_ok=True)
     return root / f"{uuid4().hex}.jsonl"
 

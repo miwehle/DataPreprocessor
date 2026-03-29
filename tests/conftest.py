@@ -10,7 +10,7 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[1]
 _HF_HOME = _ROOT / ".hf_home"
 _HF_DATASETS_CACHE = _HF_HOME / "datasets"
-_TMP = _ROOT / ".tmp"
+_TMP = _ROOT / ".local_tmp"
 
 for p in (_HF_HOME, _HF_DATASETS_CACHE, _TMP):
     p.mkdir(parents=True, exist_ok=True)

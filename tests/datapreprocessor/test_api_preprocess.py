@@ -9,7 +9,7 @@ from data_preprocessor import api as ops
 
 
 def _run_dir() -> Path:
-    root = Path(__file__).resolve().parents[2] / "tests" / ".test_artifacts"
+    root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests"
     run_dir = root / uuid4().hex
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir

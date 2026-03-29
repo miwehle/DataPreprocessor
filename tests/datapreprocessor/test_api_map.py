@@ -8,7 +8,7 @@ from data_preprocessor import api as ops
 
 
 def _artifacts_dir() -> Path:
-    root = Path(__file__).resolve().parents[2] / "tests" / ".test_artifacts"
+    root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests"
     root.mkdir(parents=True, exist_ok=True)
     return root
 

@@ -10,7 +10,7 @@ import yaml
 
 
 def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
-    tmp_path = Path(__file__).resolve().parent / ".test_artifacts" / uuid4().hex
+    tmp_path = Path(__file__).resolve().parents[1] / ".local_tmp" / "tests" / uuid4().hex
     tmp_path.mkdir(parents=True, exist_ok=True)
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
