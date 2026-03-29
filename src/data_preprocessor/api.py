@@ -442,6 +442,7 @@ def preprocess(
         tgt_bos_id=training_token_ids["tgt_bos_id"],
         tgt_eos_id=training_token_ids["tgt_eos_id"],
         num_examples=len(mapped),
+        configured_max_src_len=resolved_tokenize_cfg["max_src_len"],
     )
     with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)

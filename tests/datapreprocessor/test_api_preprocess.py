@@ -137,7 +137,10 @@ def test_ops_preprocess_passes_training_token_ids_to_map(monkeypatch):
 
     ops.preprocess(
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
-        tokenize_cfg={"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
+        tokenize_cfg={
+            "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
+            "max_src_len": 256,
+        },
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
 
@@ -158,17 +161,15 @@ def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
 
     ops.preprocess(
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
-        tokenize_cfg={"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
+        tokenize_cfg={
+            "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
+            "max_src_len": 256,
+        },
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
 
     manifest_path = (
-        run_dir
-        / "artifacts"
-        / "datasets"
-        / "europarl_de-en_train"
-        / "dataset_manifest.yaml"
-    )
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "dataset_manifest.yaml")
     assert manifest_path.is_file()
 
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
@@ -188,6 +189,7 @@ def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
         "tgt_bos_id": 58101,
         "tgt_eos_id": 0,
         "num_examples": 3,
+        "configured_max_src_len": 256,
     }
 
 
