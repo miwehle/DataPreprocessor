@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Iterable, Protocol, TextIO
 
 from .changes import Change
-from ..types import Example
+from ..shared import Example
 
 
 def apply_changes(text: str, changes: Iterable[Change] = ()) -> tuple[str, list[str]]:

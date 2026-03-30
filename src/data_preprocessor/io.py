@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Iterable
 
-from data_preprocessor.types import Example
+from data_preprocessor.shared import Example
 
 
 def dataset_path(dataset: str, stage: str, filename: str) -> Path:

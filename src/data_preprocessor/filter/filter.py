@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Callable, Iterable, Iterator, Optional
 import datasets
 
-from ..types import Example
+from ..shared import Example
 
 Predicate = Callable[[Example], bool]
 

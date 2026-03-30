@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from datasets import Dataset, load_dataset
 
-from data_preprocessor.types import Example
+from data_preprocessor.shared import Example
 
 
 def attach_ids(

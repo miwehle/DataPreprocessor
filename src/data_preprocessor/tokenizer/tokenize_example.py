@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, Mapping, Protocol, TextIO
 
-from ..types import Example
+from ..shared import Example
 
 
 class Tokenizer(Protocol):

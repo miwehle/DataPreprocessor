@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-from ..logging_utils import log_calls
+from ..shared import log_calls
 from .tokenize_example import (
     Example,
     TokenizeReporter,

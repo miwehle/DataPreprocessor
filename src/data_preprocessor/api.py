@@ -22,13 +22,13 @@ from data_preprocessor.load import download_examples
 from data_preprocessor.map import map_examples
 from data_preprocessor.metadata import build_dataset_meta
 from data_preprocessor.norm import NormReport, changes as norm_changes, norm_examples
+from data_preprocessor.shared import log_calls
 from data_preprocessor.tokenizer import (
     TokenizeReport,
     create_hf_tokenizer,
     resolve_training_token_ids,
     tokenize_examples,
 )
-from data_preprocessor.logging_utils import log_calls
 
 from .io import load, save
 
