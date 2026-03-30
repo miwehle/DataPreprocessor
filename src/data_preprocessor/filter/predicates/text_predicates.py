@@ -58,16 +58,16 @@ def is_blank(text: str) -> bool:
     return text.strip() == ""
 
 
-def is_too_short(text: str, *, min_chars: int) -> bool:
-    if min_chars < 0:
-        raise ValueError("min_chars must be >= 0")
-    return len(text) < min_chars
+def is_too_short(text: str, *, min: int) -> bool:
+    if min < 0:
+        raise ValueError("min must be >= 0")
+    return len(text) < min
 
 
-def is_too_long(text: str, *, max_chars: int) -> bool:
-    if max_chars < 0:
-        raise ValueError("max_chars must be >= 0")
-    return len(text) > max_chars
+def is_too_long(text: str, *, max: int) -> bool:
+    if max < 0:
+        raise ValueError("max must be >= 0")
+    return len(text) > max
 
 
 # --- Unicode oddities --------------------------------------------------------
@@ -175,11 +175,10 @@ def has_unbalanced_brackets(text: str) -> bool:
 
     return len(stack) != 0
 
-
 TEXT_FLAWS = (
     is_blank,
-    partial(is_too_short, min_chars=10),
-    partial(is_too_long, max_chars=300),
+    partial(is_too_short, min=10),
+    partial(is_too_long, max=300),
     contains_url,
     contains_email,
     # contains_german_chars,

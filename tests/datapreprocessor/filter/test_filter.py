@@ -1,9 +1,13 @@
 from pathlib import Path
 from functools import partial
 
+import pytest
 from datasets import load_dataset
 
 from data_preprocessor.filter import FlawReport, filter_examples, keep
+from data_preprocessor.filter.predicates import pair_predicates, predicates
+from data_preprocessor.filter.predicates.text_pair_predicates import are_equal, bad_length_ratio
+from data_preprocessor.filter.predicates.text_predicates import is_blank, is_too_short
 
 
 def test_filter_with_keep():
@@ -31,3 +35,22 @@ def test_filter_preserves_id_field():
     out = list(filter_examples(ds, lambda ex: True))
 
     assert [ex["id"] for ex in out] == [10, 11]
+
+
+def test_predicates_resolves_yaml_entries():
+    ps = predicates(["is_blank", ["is_too_short", {"min": 10}]])
+    pps = pair_predicates([["bad_length_ratio", {"min": 0.33, "max": 3}], "are_equal"])
+
+    assert ps[0] is is_blank
+    assert isinstance(ps[1], partial)
+    assert ps[1].func is is_too_short
+    assert ps[1].keywords == {"min": 10}
+    assert isinstance(pps[0], partial)
+    assert pps[0].func is bad_length_ratio
+    assert pps[0].keywords == {"min": 0.33, "max": 3}
+    assert pps[1] is are_equal
+
+
+def test_predicates_rejects_unknown_name():
+    with pytest.raises(ValueError, match="Unknown predicate"):
+        predicates(["does_not_exist"])

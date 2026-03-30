@@ -7,9 +7,9 @@ from data_preprocessor.visualize.plot_utils import integer_histogram_bins
 
 
 def test_format_wrapped_label_prefers_break_before_opening_paren() -> None:
-    label = "is_too_long(max_chars=500)"
+    label = "is_too_long(max=500)"
     wrapped = format_wrapped_label(label, width=16)
-    assert wrapped == "is too long\n(max chars=500)"
+    assert wrapped == "is too long\n(max=500)"
 
 
 def test_format_wrapped_label_keeps_short_label_on_one_line() -> None:

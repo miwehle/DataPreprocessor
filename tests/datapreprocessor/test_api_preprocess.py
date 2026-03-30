@@ -149,6 +149,35 @@ def test_ops_preprocess_passes_training_token_ids_to_map(monkeypatch):
     assert map_call["tgt_eos_id"] == 0
 
 
+def test_ops_filter_uses_configured_predicates(monkeypatch):
+    seen = {}
+
+    monkeypatch.setattr(ops, "load", lambda path: [{"translation": {"de": "x", "en": "y"}}])
+    monkeypatch.setattr(ops, "save", lambda examples, output_path: list(examples))
+
+    def fake_filter_examples(ds, keep_fn):
+        seen["text_flaws"] = keep_fn.keywords["text_flaws"]
+        seen["pair_flaws"] = keep_fn.keywords["pair_flaws"]
+        return ds
+
+    monkeypatch.setattr(ops, "filter_examples", fake_filter_examples)
+
+    ops.filter(
+        input_path="in.jsonl",
+        output_path="out.jsonl",
+        flaw_report_path=None,
+        filter_cfg={
+            "predicates": ["is_blank", ["is_too_short", {"min": 5}]],
+            "pair_predicates": ["are_equal"],
+        },
+    )
+
+    assert [f.__name__ for f in seen["text_flaws"][:1]] == ["is_blank"]
+    assert seen["text_flaws"][1].func.__name__ == "is_too_short"
+    assert seen["text_flaws"][1].keywords == {"min": 5}
+    assert [f.__name__ for f in seen["pair_flaws"]] == ["are_equal"]
+
+
 def test_ops_preprocess_writes_dataset_manifest(monkeypatch):
     run_dir = _run_dir()
     monkeypatch.chdir(run_dir)
