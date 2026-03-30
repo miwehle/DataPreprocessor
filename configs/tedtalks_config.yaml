@@ -14,10 +14,6 @@ norm_cfg:
     - collapse_whitespace
     - normalize_unicode_quotes
 
-tokenize_cfg:
-  tokenizer_model_name: Helsinki-NLP/opus-mt-de-en
-  max_src_len: null
-
 filter_cfg:
   predicates:
     - is_blank
@@ -32,6 +28,10 @@ filter_cfg:
   pair_predicates:
     - [bad_length_ratio, {min: 0.33, max: 3}]
     - are_equal
+
+tokenize_cfg:
+  tokenizer_model_name: Helsinki-NLP/opus-mt-de-en
+  max_src_len: null
 
 map_cfg:
   src_lang: de
