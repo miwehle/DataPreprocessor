@@ -43,11 +43,3 @@ def fix_apostrophe_spacing(text: str) -> str:
 
 
 Change = Callable[[str], str]
-
-CHANGES: tuple[Change, ...] = (
-    strip_edges,
-    remove_control_chars,
-    collapse_whitespace,
-    normalize_unicode_quotes,
-    # fix_apostrophe_spacing,
-)

@@ -66,6 +66,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
 
     ops.preprocess(
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train", "max_examples": 123},
+        norm_cfg={"changes": ["strip_edges", "collapse_whitespace"]},
         tokenize_cfg={
             "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
             "max_src_len": 256,
@@ -76,6 +77,8 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
     assert [name for name, _ in calls] == ["download", "norm", "filter", "tokenize", "map", "save"]
     assert calls[0][1]["max_examples"] == 123
     assert "include_ids" not in calls[0][1]
+    norm_call = next(kwargs for name, kwargs in calls if name == "norm")
+    assert norm_call["norm_cfg"] == {"changes": ["strip_edges", "collapse_whitespace"]}
     tokenize_call = next(kwargs for name, kwargs in calls if name == "tokenize")
     assert tokenize_call["max_src_len"] == 256
     assert tokenize_call["src_lang"] == "de"

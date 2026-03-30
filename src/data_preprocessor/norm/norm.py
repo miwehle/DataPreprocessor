@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import Iterable, Iterator
 
-from .changes import CHANGES, Change
+from .changes import Change
 from .norm_example import Example, NormReporter, norm_example
 
 
 def norm_examples(
     ds: Iterable[Example],
-    changes: Iterable[Change] = CHANGES,
+    changes: Iterable[Change] = (),
     norm_reporter: NormReporter | None = None,
 ) -> Iterator[Example]:
     """Yield normalized examples from an input iterable."""

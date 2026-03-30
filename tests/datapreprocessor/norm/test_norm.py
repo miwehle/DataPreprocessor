@@ -2,7 +2,7 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from data_preprocessor.norm import NormReport, norm_examples
+from data_preprocessor.norm import NormReport, changes, norm_examples
 
 
 def test_norm_report_matches_expected():
@@ -10,7 +10,18 @@ def test_norm_report_matches_expected():
     data_file = root_dir / "tests" / "data" / "testdata_de_en_1000.jsonl"
     report = NormReport.from_path(root_dir / "norm_report.txt")
     ds = load_dataset("json", data_files=str(data_file), split="train")
-    it = norm_examples(ds, norm_reporter=report)
+    it = norm_examples(
+        ds,
+        changes=changes(
+            [
+                "strip_edges",
+                "remove_control_chars",
+                "collapse_whitespace",
+                "normalize_unicode_quotes",
+            ]
+        ),
+        norm_reporter=report,
+    )
 
     try:
         for ex in it:
@@ -29,3 +40,4 @@ def test_norm_preserves_id_field():
     out = list(norm_examples(ds))
 
     assert out[0]["id"] == 7
+    assert out[0]["translation"] == {"de": "  Hallo  ", "en": "  Hello  "}

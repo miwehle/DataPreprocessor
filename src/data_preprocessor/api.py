@@ -21,7 +21,7 @@ from data_preprocessor.filter import FlawReport, filter_examples, keep, pair_pre
 from data_preprocessor.load import download_examples
 from data_preprocessor.map import map_examples
 from data_preprocessor.metadata import build_dataset_meta
-from data_preprocessor.norm import NormReport, norm_examples
+from data_preprocessor.norm import NormReport, changes as norm_changes, norm_examples
 from data_preprocessor.tokenizer import (
     TokenizeReport,
     create_hf_tokenizer,
@@ -186,14 +186,18 @@ def norm(
     output_path: str | Path,
     norm_report_path: str | Path | None = "norm_report.txt",
     norm_debug: bool = False,
+    norm_cfg: dict[str, Any] | None = None,
 ) -> None:
     """Normalize text examples and optionally write a norm report."""
+    norm_cfg = norm_cfg or {}
+    changes = norm_changes(norm_cfg.get("changes")) or ()
+
     _run_with_optional_report(
         input_path=input_path,
         output_path=output_path,
         report_path=norm_report_path,
         make_report=lambda path: NormReport.from_path(path, debug=norm_debug),
-        transform=lambda ds, report: norm_examples(ds, norm_reporter=report),
+        transform=lambda ds, report: norm_examples(ds, changes=changes, norm_reporter=report),
     )
 
 
@@ -388,7 +392,8 @@ def preprocess(
                 "input_path": paths["raw_output"],
                 "output_path": paths["norm_output"],
                 "norm_report_path": paths["norm_report"],
-                **norm_cfg,
+                "norm_debug": norm_cfg.get("norm_debug", False),
+                "norm_cfg": norm_cfg,
             },
         ),
         (
