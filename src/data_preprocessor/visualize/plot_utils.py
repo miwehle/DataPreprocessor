@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import ast
 import math
 import re
+from pathlib import Path
 from textwrap import fill
 
 
@@ -204,10 +206,52 @@ def attach_toolbar_hint(fig, text: str):
     except ImportError:
         return None
 
-    label = tk.Label(master=toolbar, text=text, font=getattr(toolbar, "_label_font", None), padx=8)
+    label = tk.Label(
+        master=toolbar, text=text, font=getattr(toolbar, "_label_font", None), padx=8
+    )
     label.pack(side=tk.LEFT)
     toolbar._codex_hint_label = label
     return label
+
+
+def load_report_records(report_path: str | Path) -> list[dict]:
+    records: list[dict] = []
+    for line in Path(report_path).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        record = ast.literal_eval(line)
+        if isinstance(record, dict):
+            records.append(record)
+    return records
+
+
+def plot_grouped_category_counts(
+    fig, ax, categories, left_counts, right_counts, left_label, right_label, empty_message
+):
+    if not categories:
+        ax.text(0.5, 0.5, empty_message, ha="center", va="center")
+        ax.set_axis_off()
+        return
+
+    x = list(range(len(categories)))
+    width = 0.35
+    left_bars = ax.bar(
+        [i - width / 2 for i in x], [left_counts.get(c, 0) for c in categories], width,
+        label=left_label,
+    )
+    right_bars = ax.bar(
+        [i + width / 2 for i in x], [right_counts.get(c, 0) for c in categories], width,
+        label=right_label,
+    )
+    ax.set_xticks(x)
+    ax.set_xticklabels([format_wrapped_label(c) for c in categories], rotation=0, ha="center")
+    ax.legend()
+    bars = list(left_bars) + list(right_bars)
+    add_headroom(ax, bars)
+    attach_adaptive_value_labels(
+        fig, bars, annotate_bars(ax, left_bars) + annotate_bars(ax, right_bars)
+    )
 
 
 def integer_histogram_bins(*value_series, max_bins: int = 60) -> list[float]:
