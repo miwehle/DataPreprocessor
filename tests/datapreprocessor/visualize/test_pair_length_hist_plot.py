@@ -9,76 +9,62 @@ from data_preprocessor.visualize.pair_length_hist_plot import load_pair_lengths
 from data_preprocessor.visualize.pair_length_hist_plot import plot_pair_length_histogram
 
 
-def _local_temp_jsonl(lines: list[str]) -> Path:
-    path = Path("tests/data") / f"tmp_pair_lengths_{uuid4().hex}.jsonl"
+_TMP_DIR = Path(__file__).resolve().parents[3] / ".local_tmp" / "tests" / "visualize"
+
+
+def _local_temp_jsonl(prefix: str, lines: list[str]) -> Path:
+    _TMP_DIR.mkdir(parents=True, exist_ok=True)
+    path = _TMP_DIR / f"{prefix}_{uuid4().hex}.jsonl"
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
 
 
 def test_load_pair_lengths_reads_translation_pairs() -> None:
-    dataset_path = _local_temp_jsonl(
-        [
-            '{"translation": {"de": "Hallo", "en": "Hello"}}',
-            '{"translation": {"de": "Welt", "en": "World!"}}',
-            '{"foo": "bar"}',
-        ]
-    )
+    dataset_path = _local_temp_jsonl("pair_lengths", [
+        '{"translation": {"de": "Hallo", "en": "Hello"}}',
+        '{"translation": {"de": "Welt", "en": "World!"}}',
+        '{"foo": "bar"}',
+    ])
     try:
-        de_lengths, en_lengths = load_pair_lengths(dataset_path)
+        assert load_pair_lengths(dataset_path) == ([5, 4], [5, 6])
     finally:
         dataset_path.unlink(missing_ok=True)
-
-    assert de_lengths == [5, 4]
-    assert en_lengths == [5, 6]
 
 
 def test_plot_pair_length_histogram_returns_axis_with_two_histograms() -> None:
-    dataset_path = _local_temp_jsonl(
-        ['{"translation": {"de": "a", "en": "bb"}}', '{"translation": {"de": "ccc", "en": "dddd"}}']
-    )
-
+    dataset_path = _local_temp_jsonl("pair_histogram", [
+        '{"translation": {"de": "a", "en": "bb"}}',
+        '{"translation": {"de": "ccc", "en": "dddd"}}',
+    ])
     try:
-        _, ax = plot_pair_length_histogram(dataset_path, max_bins=5)
+        _, ax = plot_pair_length_histogram(dataset_path, 5)
     finally:
         dataset_path.unlink(missing_ok=True)
-    labels = [text.get_text() for text in ax.get_legend().get_texts()]
-
-    assert labels == ["de", "en"]
+    assert [text.get_text() for text in ax.get_legend().get_texts()] == ["de", "en"]
     assert len(ax.patches) > 0
 
 
 def test_plot_pair_length_histogram_accepts_log_scale_on_call() -> None:
-    dataset_path = _local_temp_jsonl(
-        ['{"translation": {"de": "a", "en": "bb"}}', '{"translation": {"de": "ccc", "en": "dddd"}}']
-    )
+    dataset_path = _local_temp_jsonl("pair_log_scale", [
+        '{"translation": {"de": "a", "en": "bb"}}',
+        '{"translation": {"de": "ccc", "en": "dddd"}}',
+    ])
     try:
-        _, ax = plot_pair_length_histogram(
-            dataset_path, max_bins=5, y_scale="log", interactive_scale_toggle=False
-        )
+        _, ax = plot_pair_length_histogram(dataset_path, 5, "linear", "log", False)
     finally:
         dataset_path.unlink(missing_ok=True)
-
     assert ax.get_yscale() == "log"
 
 
 def test_plot_pair_length_histogram_supports_all_axis_scale_combinations() -> None:
-    dataset_path = _local_temp_jsonl(
-        [
-            '{"translation": {"de": "a", "en": "bb"}}',
-            '{"translation": {"de": "ccc", "en": "dddd"}}',
-            '{"translation": {"de": "eeeee", "en": "ffffff"}}',
-        ]
-    )
-    combinations = [("linear", "linear"), ("log", "linear"), ("linear", "log"), ("log", "log")]
+    dataset_path = _local_temp_jsonl("pair_scales", [
+        '{"translation": {"de": "a", "en": "bb"}}',
+        '{"translation": {"de": "ccc", "en": "dddd"}}',
+        '{"translation": {"de": "eeeee", "en": "ffffff"}}',
+    ])
     try:
-        for x_scale, y_scale in combinations:
-            _, ax = plot_pair_length_histogram(
-                dataset_path,
-                max_bins=5,
-                x_scale=x_scale,
-                y_scale=y_scale,
-                interactive_scale_toggle=False,
-            )
+        for x_scale, y_scale in [("linear", "linear"), ("log", "linear"), ("linear", "log"), ("log", "log")]:
+            _, ax = plot_pair_length_histogram(dataset_path, 5, x_scale, y_scale, False)
             assert ax.get_xscale() == x_scale
             assert ax.get_yscale() == y_scale
     finally:
