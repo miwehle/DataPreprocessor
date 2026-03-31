@@ -17,7 +17,7 @@ def build_dataset_meta(
     tgt_bos_id: int,
     tgt_eos_id: int,
     num_examples: int,
-    configured_max_src_len: int | None,
+    configured_max_seq_len: int | None,
 ) -> dict[str, object]:
     return {
         "schema_version": 1,
@@ -35,5 +35,5 @@ def build_dataset_meta(
         "tgt_bos_id": tgt_bos_id,
         "tgt_eos_id": tgt_eos_id,
         "num_examples": num_examples,
-        "configured_max_src_len": configured_max_src_len,
+        "configured_max_seq_len": configured_max_seq_len,
     }

@@ -235,18 +235,18 @@ def tokenize(
     tokenizer_model_name: str,
     tokenizer_kwargs: dict | None = None,
     tokenize_debug: bool = False,
-    max_src_len: int | None = None,
+    max_seq_len: int | None = None,
     src_lang: str = "de",
 ) -> None:
     """Tokenize both translation sides and write nested tokenized_translation output.
 
-    If ``max_src_len`` is set, examples whose untruncated source token list is
-    longer than that limit are dropped entirely before tokenized output is
-    written.
+    If ``max_seq_len`` is set, examples whose untruncated source or target token
+    list is longer than that limit are dropped entirely before tokenized output
+    is written.
     """
     tokenizer = create_hf_tokenizer(tokenizer_model_name)
-    if max_src_len is not None and max_src_len < 0:
-        raise ValueError("max_src_len must be >= 0 or None.")
+    if max_seq_len is not None and max_seq_len < 0:
+        raise ValueError("max_seq_len must be >= 0 or None.")
 
     _run_with_optional_report(
         input_path=input_path,
@@ -257,7 +257,7 @@ def tokenize(
             ds,
             tokenizer=tokenizer,
             tokenize_reporter=report,
-            max_src_len=max_src_len,
+            max_seq_len=max_seq_len,
             src_lang=src_lang,
             tokenizer_kwargs=tokenizer_kwargs,
         ),
@@ -334,7 +334,7 @@ def preprocess(
     resolved_tokenize_cfg = {
         "tokenizer_kwargs": None,
         "tokenize_debug": False,
-        "max_src_len": None,
+        "max_seq_len": None,
         "src_lang": map_cfg.get("src_lang", "de"),
         **tokenize_cfg,
     }
@@ -456,7 +456,7 @@ def preprocess(
         tgt_bos_id=training_token_ids["tgt_bos_id"],
         tgt_eos_id=training_token_ids["tgt_eos_id"],
         num_examples=len(mapped),
-        configured_max_src_len=resolved_tokenize_cfg["max_src_len"],
+        configured_max_seq_len=resolved_tokenize_cfg["max_seq_len"],
     )
     with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)

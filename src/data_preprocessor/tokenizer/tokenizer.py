@@ -64,18 +64,20 @@ def tokenize_examples(
     ds: Iterable[Example],
     tokenizer: Tokenizer,
     tokenize_reporter: TokenizeReporter | None = None,
-    max_src_len: int | None = None,
+    max_seq_len: int | None = None,
     src_lang: str = "de",
     **tokenize_example_kwargs,
 ) -> Iterator[Example]:
-    """Yield tokenized examples and optionally drop examples with overlong src tokens."""
+    """Yield tokenized examples and optionally drop examples with overlong token sequences."""
     for ex in ds:
         tokenized = tokenize_example(ex, tokenizer=tokenizer, **tokenize_example_kwargs)
         tokenized_translation = tokenized["tokenized_translation"]
-        src_len = len(tokenized_translation[src_lang]["input_ids"])
-        if max_src_len is not None and src_len > max_src_len:
+        src_seq_len = len(tokenized_translation[src_lang]["input_ids"])
+        tgt_lang = next(lang for lang in tokenized_translation if lang != src_lang)
+        tgt_seq_len = len(tokenized_translation[tgt_lang]["input_ids"])
+        if max_seq_len is not None and max(src_seq_len, tgt_seq_len) > max_seq_len:
             if tokenize_reporter is not None:
-                tokenize_reporter.note_src_too_long(ex.get("id"))
+                tokenize_reporter.note_example_too_long(ex.get("id"))
             continue
         if tokenize_reporter is not None:
             tokenize_reporter.note_tokenization(

@@ -69,7 +69,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
         norm_cfg={"changes": ["strip_edges", "collapse_whitespace"]},
         tokenize_cfg={
             "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
-            "max_src_len": 256,
+            "max_seq_len": 256,
         },
         map_cfg={"src_lang": "de", "tgt_lang": "en", "include_text": True},
     )
@@ -80,7 +80,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
     norm_call = next(kwargs for name, kwargs in calls if name == "norm")
     assert norm_call["norm_cfg"] == {"changes": ["strip_edges", "collapse_whitespace"]}
     tokenize_call = next(kwargs for name, kwargs in calls if name == "tokenize")
-    assert tokenize_call["max_src_len"] == 256
+    assert tokenize_call["max_seq_len"] == 256
     assert tokenize_call["src_lang"] == "de"
     assert calls[-2][1]["include_text"] is True
     assert calls[0][1]["output"] == (
@@ -142,7 +142,7 @@ def test_preprocess_passes_training_token_ids_to_map(monkeypatch):
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
         tokenize_cfg={
             "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
-            "max_src_len": 256,
+            "max_seq_len": 256,
         },
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
@@ -195,7 +195,7 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
         download_cfg={"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
         tokenize_cfg={
             "tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en",
-            "max_src_len": 256,
+            "max_seq_len": 256,
         },
         map_cfg={"src_lang": "de", "tgt_lang": "en"},
     )
@@ -221,7 +221,7 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
         "tgt_bos_id": 58101,
         "tgt_eos_id": 0,
         "num_examples": 3,
-        "configured_max_src_len": 256,
+        "configured_max_seq_len": 256,
     }
 
 
@@ -270,7 +270,7 @@ def test_preprocess_logs_to_staging_preprocessing_log(monkeypatch):
     monkeypatch.setattr(
         ops,
         "tokenize_examples",
-        lambda ds, tokenizer, tokenize_reporter=None, max_src_len=None, src_lang="de", **kwargs: iter(ds),
+        lambda ds, tokenizer, tokenize_reporter=None, max_seq_len=None, src_lang="de", **kwargs: iter(ds),
     )
     _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(ops, "_artifacts_root", lambda: run_dir / "artifacts" / "datasets")
