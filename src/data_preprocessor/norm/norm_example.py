@@ -17,7 +17,7 @@ def apply_changes(text: str, changes: Iterable[Change] = ()) -> tuple[str, list[
 
 
 class NormReporter(Protocol):
-    def note_change(self, before: str, after: str, norm_changes: list[str]) -> None: ...
+    def note_change(self, de, en) -> None: ...
 
 
 class NormReport:
@@ -30,14 +30,22 @@ class NormReport:
     def from_path(cls, path: str | Path, *, debug: bool = False) -> "NormReport":
         return cls(open(path, "w", encoding="utf-8"), debug=debug)
 
-    def note_change(self, before: str, after: str, norm_changes: list[str]) -> None:
+    def note_change(self, de, en) -> None:
         self.seq_no += 1
-        if not norm_changes:
+        de_before, de_after, de_norm_changes = de
+        en_before, en_after, en_norm_changes = en
+        if not de_norm_changes and not en_norm_changes:
             return
-        record = {"seq_no": self.seq_no, "norm_changes": norm_changes}
+        record = {
+            "seq_no": self.seq_no,
+            "de_norm_changes": de_norm_changes,
+            "en_norm_changes": en_norm_changes,
+        }
         if self.debug:
-            record["before"] = before
-            record["after"] = after
+            record["de_before"] = de_before
+            record["de_after"] = de_after
+            record["en_before"] = en_before
+            record["en_after"] = en_after
         self.out.write(f"{record}\n")
 
     def close(self) -> None:
@@ -49,19 +57,19 @@ def norm_example(
 ) -> Example:
     """Return a normalized copy of one translation example with de/en texts."""
 
-    def norm(s: str) -> str:
+    def norm(s: str) -> tuple[str, str, list[str]]:
         """Normalize text by removing control chars and collapsing whitespace."""
         before = str(s)
         after, norm_changes = apply_changes(before, changes=changes)
-
-        if norm_reporter is not None:
-            norm_reporter.note_change(before, after, norm_changes)
-
-        return after
+        return before, after, norm_changes
 
     normalized = dict(ex)
     translation = dict(normalized["translation"])
-    translation["de"] = norm(translation["de"])
-    translation["en"] = norm(translation["en"])
+    de = norm(translation["de"])
+    en = norm(translation["en"])
+    if norm_reporter is not None:
+        norm_reporter.note_change(de, en)
+    translation["de"] = de[1]
+    translation["en"] = en[1]
     normalized["translation"] = translation
     return normalized
