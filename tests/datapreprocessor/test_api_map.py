@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from data_preprocessor import api as ops
+from data_preprocessor import api
 
 
 def _artifacts_dir() -> Path:
@@ -45,7 +45,7 @@ def test_map_projects_to_training_schema_jsonl():
         ],
     )
 
-    ops.map(ops.MapConfig(src_lang="de", tgt_lang="en", include_text=True), src, dst)
+    api.map(api.MapConfig(src_lang="de", tgt_lang="en", include_text=True), src, dst)
 
     out = _read_jsonl(dst)
     assert out == [
@@ -77,7 +77,7 @@ def test_map_can_write_target_bos_and_eos():
         ],
     )
 
-    ops.map(ops.MapConfig(src_lang="de", tgt_lang="en", tgt_bos_id=99, tgt_eos_id=0), src, dst)
+    api.map(api.MapConfig(src_lang="de", tgt_lang="en", tgt_bos_id=99, tgt_eos_id=0), src, dst)
 
     out = _read_jsonl(dst)
     assert out == [{"id": 1, "src_ids": [10, 0], "tgt_ids": [99, 20, 0]}]

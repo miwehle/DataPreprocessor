@@ -5,7 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from datasets import Dataset
-from data_preprocessor import api as ops
+from data_preprocessor import api
 import data_preprocessor.load.download as load_module
 
 
@@ -33,7 +33,7 @@ def test_download_adds_ids_by_default(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
-    ops.download(ops.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
+    api.download(api.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
 
     rows = _read_jsonl(out)
     assert [row["id"] for row in rows] == [0, 1]
@@ -44,8 +44,8 @@ def test_download_can_disable_ids(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
-    ops.download(
-        ops.DownloadConfig(dataset="dummy", config="de-en", split="train", include_ids=False),
+    api.download(
+        api.DownloadConfig(dataset="dummy", config="de-en", split="train", include_ids=False),
         out,
     )
 
@@ -61,7 +61,7 @@ def test_download_raises_if_id_exists_and_overwrite_disabled(monkeypatch):
     out = _make_out_path()
 
     try:
-        ops.download(ops.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
+        api.download(api.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
         assert False, "expected ValueError"
     except ValueError as exc:
         assert "already exists" in str(exc)
@@ -77,8 +77,8 @@ def test_download_can_overwrite_existing_id(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
-    ops.download(
-        ops.DownloadConfig(
+    api.download(
+        api.DownloadConfig(
             dataset="dummy", config="de-en", split="train", overwrite_ids=True, start_id=100
         ),
         out,
@@ -99,8 +99,8 @@ def test_download_can_load_hf_parquet(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", fake_load_dataset)
     out = _make_out_path()
 
-    ops.download(
-        ops.DownloadConfig(
+    api.download(
+        api.DownloadConfig(
             dataset="IWSLT/iwslt2017",
             config="iwslt2017-de-en",
             split="train",
