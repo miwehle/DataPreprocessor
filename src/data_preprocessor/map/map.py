@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 
-from data_preprocessor.shared import Example
+from data_preprocessor.shared import Example, MapConfig
 
 
 def _normalize_target_ids(
@@ -25,17 +25,7 @@ def _normalize_target_ids(
     return normalized
 
 
-def map_examples(
-    ds: Iterable[Example],
-    *,
-    id_key: str = "id",
-    tokenized_key: str = "tokenized_translation",
-    src_lang: str,
-    tgt_lang: str,
-    tgt_bos_id: int | None = None,
-    tgt_eos_id: int | None = None,
-    include_text: bool = False,
-) -> Iterator[Example]:
+def map_examples(ds: Iterable[Example], config: MapConfig) -> Iterator[Example]:
     """Map tokenized pipeline examples to the flat translation training schema.
 
     This is the core function of the ``map`` stage: it turns nested
@@ -52,20 +42,20 @@ def map_examples(
     ``tgt_bos_id=99`` and ``tgt_eos_id=0``.
     """
     for ex in ds:
-        tokenized = ex[tokenized_key]
-        src_ids = [int(x) for x in tokenized[src_lang]["input_ids"]]
+        tokenized = ex[config.tokenized_key]
+        src_ids = [int(x) for x in tokenized[config.src_lang]["input_ids"]]
         tgt_ids = _normalize_target_ids(
-            list(tokenized[tgt_lang]["input_ids"]),
-            tgt_bos_id=tgt_bos_id,
-            tgt_eos_id=tgt_eos_id,
+            list(tokenized[config.tgt_lang]["input_ids"]),
+            tgt_bos_id=config.tgt_bos_id,
+            tgt_eos_id=config.tgt_eos_id,
         )
         out: Example = {
-            "id": int(ex[id_key]),
+            "id": int(ex[config.id_key or "id"]),
             "src_ids": src_ids,
             "tgt_ids": tgt_ids,
         }
-        if include_text:
+        if config.include_text:
             translation = ex["translation"]
-            out["src_text"] = str(translation[src_lang])
-            out["tgt_text"] = str(translation[tgt_lang])
+            out["src_text"] = str(translation[config.src_lang])
+            out["tgt_text"] = str(translation[config.tgt_lang])
         yield out

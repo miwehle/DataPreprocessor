@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, Literal
+from typing import Any
 
 from datasets import Dataset, load_dataset
 
-from data_preprocessor.shared import Example
+from data_preprocessor.shared import DownloadConfig, Example
 
 
 def attach_ids(
@@ -39,20 +39,7 @@ def attach_ids(
     return out
 
 
-def download_examples(
-    *,
-    dataset: str,
-    config: str,
-    split: str,
-    source_format: Literal["hf", "hf_parquet"] = "hf",
-    revision: str = "main",
-    parquet_basename: str | None = None,
-    max_examples: int | None = None,
-    include_ids: bool = True,
-    id_field: str = "id",
-    start_id: int = 0,
-    overwrite_ids: bool = False,
-) -> Dataset | list[Example]:
+def download_examples(config: DownloadConfig) -> Dataset | list[Example]:
     """Load one dataset split from Hugging Face and optionally attach IDs.
 
     Supported source formats:
@@ -83,28 +70,28 @@ def download_examples(
         ValueError: If ``source_format`` is unsupported.
         ValueError: If the ID field already exists and ``overwrite_ids`` is false.
     """    
-    if source_format == "hf":
-        ds = load_dataset(dataset, config, split=split)
-    elif source_format == "hf_parquet":
-        basename = parquet_basename or dataset.rsplit("/", maxsplit=1)[-1]
+    if config.source_format == "hf":
+        ds = load_dataset(config.dataset, config.config, split=config.split)
+    elif config.source_format == "hf_parquet":
+        basename = config.parquet_basename or config.dataset.rsplit("/", maxsplit=1)[-1]
         ds = load_dataset(
             "parquet",
             data_files=(
-                f"https://huggingface.co/datasets/{dataset}/resolve/"
-                f"{revision}/{config}/{basename}-{split}.parquet"
+                f"https://huggingface.co/datasets/{config.dataset}/resolve/"
+                f"{config.revision}/{config.config}/{basename}-{config.split}.parquet"
             ),
             split="train",
         )
     else:
         raise ValueError(
-            f"Unsupported source_format {source_format!r}. "
+            f"Unsupported source_format {config.source_format!r}. "
             "Expected 'hf' or 'hf_parquet'."
         )
-    records = ds if max_examples is None else ds.select(range(min(max_examples, len(ds))))
+    records = ds if config.max_examples is None else ds.select(range(min(config.max_examples, len(ds))))
     return attach_ids(
         records,
-        include_ids=include_ids,
-        id_field=id_field,
-        start_id=start_id,
-        overwrite_ids=overwrite_ids,
+        include_ids=config.include_ids,
+        id_field=config.id_field,
+        start_id=config.start_id,
+        overwrite_ids=config.overwrite_ids,
     )

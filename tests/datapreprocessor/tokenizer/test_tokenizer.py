@@ -2,6 +2,7 @@ from pathlib import Path
 
 from datasets import load_dataset
 
+from data_preprocessor import TokenizeConfig
 from data_preprocessor.tokenizer import TokenizeReport, tokenize_example, tokenize_examples
 
 
@@ -22,9 +23,9 @@ def test_tokenize_report_matches_expected():
 
     it = tokenize_examples(
         ds,
+        TokenizeConfig(tokenizer_model_name="dummy", tokenizer_kwargs=None),
         tokenizer=DummyTokenizer(),
         tokenize_reporter=report,
-        tokenizer_kwargs=None,
     )
 
     try:
@@ -76,9 +77,9 @@ def test_tokenize_examples_removes_too_long():
         actual = list(
             tokenize_examples(
                 examples,
+                TokenizeConfig(tokenizer_model_name="dummy", max_seq_len=3),
                 tokenizer=DummyTokenizer(),
                 tokenize_reporter=report,
-                max_seq_len=3,
             )
         )
     finally:

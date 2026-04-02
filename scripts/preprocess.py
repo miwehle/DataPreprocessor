@@ -16,12 +16,16 @@ from pathlib import Path
 
 import yaml
 
-
-OPTIONAL_CFG_KEYS = ("download_cfg", "norm_cfg", "filter_cfg", "tokenize_cfg", "map_cfg")
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from data_preprocessor.api import preprocess
+from data_preprocessor import (
+    DownloadConfig,
+    FilterConfig,
+    MapConfig,
+    NormConfig,
+    TokenizeConfig,
+    preprocess,
+)
 
 
 def main() -> int:
@@ -39,8 +43,12 @@ def main() -> int:
 
     try:
         preprocess(
+            download_cfg=DownloadConfig(**cfg["download_cfg"]),
+            tokenize_cfg=TokenizeConfig(**cfg["tokenize_cfg"]),
+            map_cfg=MapConfig(**cfg["map_cfg"]),
+            norm_cfg=NormConfig(**cfg["norm_cfg"]) if cfg.get("norm_cfg") is not None else None,
+            filter_cfg=FilterConfig(**cfg["filter_cfg"]) if cfg.get("filter_cfg") is not None else None,
             write_jsonl=cfg.get("write_jsonl", True),
-            **{key: cfg.get(key) for key in OPTIONAL_CFG_KEYS},
         )
     except Exception as exc:
         print(f"Preprocess failed: {exc}")

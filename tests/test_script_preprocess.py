@@ -36,7 +36,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
 
     monkeypatch.setattr(sys, "argv", ["preprocess.py", str(config_path)])
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "src"))
-    import data_preprocessor.api as api
+    import data_preprocessor as api
 
     monkeypatch.setattr(api, "preprocess", fake_preprocess)
 
@@ -49,15 +49,13 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
     assert excinfo.value.code == 0
     assert calls == [
         {
-            "download_cfg": {
-                "dataset": "Helsinki-NLP/europarl",
-                "config": "de-en",
-                "split": "train",
-            },
+            "download_cfg": api.DownloadConfig(
+                dataset="Helsinki-NLP/europarl", config="de-en", split="train"
+            ),
             "norm_cfg": None,
             "filter_cfg": None,
-            "tokenize_cfg": {"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
-            "map_cfg": {"src_lang": "de", "tgt_lang": "en", "include_text": True},
+            "tokenize_cfg": api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
+            "map_cfg": api.MapConfig(src_lang="de", tgt_lang="en", include_text=True),
             "write_jsonl": False,
         }
     ]

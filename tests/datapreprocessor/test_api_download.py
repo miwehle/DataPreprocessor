@@ -33,7 +33,7 @@ def test_download_adds_ids_by_default(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
-    ops.download(dataset="dummy", config="de-en", split="train", output=out)
+    ops.download(ops.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
 
     rows = _read_jsonl(out)
     assert [row["id"] for row in rows] == [0, 1]
@@ -45,7 +45,8 @@ def test_download_can_disable_ids(monkeypatch):
     out = _make_out_path()
 
     ops.download(
-        dataset="dummy", config="de-en", split="train", output=out, include_ids=False
+        ops.DownloadConfig(dataset="dummy", config="de-en", split="train", include_ids=False),
+        out,
     )
 
     rows = _read_jsonl(out)
@@ -60,7 +61,7 @@ def test_download_raises_if_id_exists_and_overwrite_disabled(monkeypatch):
     out = _make_out_path()
 
     try:
-        ops.download(dataset="dummy", config="de-en", split="train", output=out)
+        ops.download(ops.DownloadConfig(dataset="dummy", config="de-en", split="train"), out)
         assert False, "expected ValueError"
     except ValueError as exc:
         assert "already exists" in str(exc)
@@ -77,12 +78,10 @@ def test_download_can_overwrite_existing_id(monkeypatch):
     out = _make_out_path()
 
     ops.download(
-        dataset="dummy",
-        config="de-en",
-        split="train",
-        output=out,
-        overwrite_ids=True,
-        start_id=100,
+        ops.DownloadConfig(
+            dataset="dummy", config="de-en", split="train", overwrite_ids=True, start_id=100
+        ),
+        out,
     )
 
     rows = _read_jsonl(out)
@@ -101,11 +100,13 @@ def test_download_can_load_hf_parquet(monkeypatch):
     out = _make_out_path()
 
     ops.download(
-        dataset="IWSLT/iwslt2017",
-        config="iwslt2017-de-en",
-        split="train",
-        source_format="hf_parquet",
-        output=out,
+        ops.DownloadConfig(
+            dataset="IWSLT/iwslt2017",
+            config="iwslt2017-de-en",
+            split="train",
+            source_format="hf_parquet",
+        ),
+        out,
     )
 
     rows = _read_jsonl(out)

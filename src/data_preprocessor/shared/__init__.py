@@ -1,3 +1,4 @@
+from .config import DownloadConfig, FilterConfig, MapConfig, NormConfig, TokenizeConfig
 from .logging_utils import (
     close_data_preprocessor_logging,
     configure_data_preprocessor_logging,
@@ -8,6 +9,11 @@ from .types import Example
 
 __all__ = [
     "Example",
+    "DownloadConfig",
+    "NormConfig",
+    "FilterConfig",
+    "TokenizeConfig",
+    "MapConfig",
     "close_data_preprocessor_logging",
     "configure_data_preprocessor_logging",
     "log_calls",
