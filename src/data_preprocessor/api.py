@@ -1,4 +1,4 @@
-"""Thin public orchestration layer.
+﻿"""Thin public orchestration layer.
 
 This module coordinates I/O and delegates transformation logic to the
 specialized `data_preprocessor.*` modules. Keep business logic out of this file.
@@ -21,7 +21,6 @@ import yaml
 from data_preprocessor.filter import FlawReport, filter_examples, keep, pair_predicates, predicates
 from data_preprocessor.load import download_examples
 from data_preprocessor.map import map_examples
-from data_preprocessor.metadata import build_dataset_meta
 from data_preprocessor.norm import NormReport, changes as norm_changes, norm_examples
 from data_preprocessor.shared import (
     DownloadConfig,
@@ -176,6 +175,42 @@ def _validate_preprocess_configs(
         )
 
 
+def _collect_dataset_metadata(
+    tokenizer: Any,
+    training_token_ids: dict[str, int],
+    tokenize_cfg: TokenizeConfig,
+    map_cfg: MapConfig,
+    num_examples: int,
+) -> dict[str, object]:
+    tokenizer_vocab_size = getattr(tokenizer, "vocab_size", None)
+    if tokenizer_vocab_size is None:
+        raise ValueError("Tokenizer must define vocab_size for dataset metadata.")
+    base_vocab_size = int(tokenizer_vocab_size)
+    return {
+        "schema_version": 1,
+        "tokenizer_model_name": tokenize_cfg.tokenizer_model_name,
+        "src_lang": map_cfg.src_lang,
+        "tgt_lang": map_cfg.tgt_lang,
+        "id_field": map_cfg.id_key or "id",
+        "src_field": "src_ids",
+        "tgt_field": "tgt_ids",
+        "base_vocab_size": base_vocab_size,
+        "src_vocab_size": max(base_vocab_size, training_token_ids["src_pad_id"] + 1),
+        "tgt_vocab_size": max(
+            base_vocab_size,
+            training_token_ids["tgt_pad_id"] + 1,
+            training_token_ids["tgt_bos_id"] + 1,
+            training_token_ids["tgt_eos_id"] + 1,
+        ),
+        "src_pad_id": training_token_ids["src_pad_id"],
+        "tgt_pad_id": training_token_ids["tgt_pad_id"],
+        "tgt_bos_id": training_token_ids["tgt_bos_id"],
+        "tgt_eos_id": training_token_ids["tgt_eos_id"],
+        "num_examples": num_examples,
+        "configured_max_seq_len": tokenize_cfg.max_seq_len,
+    }
+
+
 @_log_calls
 def download(config: DownloadConfig, output_path: str | Path) -> None:
     save(download_examples(config), output_path)
@@ -263,13 +298,14 @@ def preprocess(
     the training data loader) still pads src/tgt sequences to the batch-local max
     length, stacks them into tensors, and returns the batch IDs alongside them.
     """
+    
+    # initialize configs and output paths
     norm_cfg = norm_cfg or NormConfig()
     filter_cfg = filter_cfg or FilterConfig()
     dataset_name = _dataset_name_for_filesystem(download_cfg.dataset)
     dataset_dir_name = f"{dataset_name}_{download_cfg.config}_{download_cfg.split}"
     if download_cfg.max_examples is not None:
         dataset_dir_name = f"{dataset_dir_name}_{download_cfg.max_examples}"
-
     dataset_dir = _next_available_run_dir(_artifacts_root() / dataset_dir_name)
     paths = _default_paths(dataset_dir=dataset_dir, dataset_name=dataset_name, write_jsonl=write_jsonl)
     for path in paths.values():
@@ -278,7 +314,10 @@ def preprocess(
 
     tokenizer = create_hf_tokenizer(tokenize_cfg.tokenizer_model_name)
     training_token_ids = resolve_training_token_ids(tokenizer)
+
     _validate_preprocess_configs(download_cfg, tokenize_cfg, map_cfg, training_token_ids)
+
+    # fill missing config fields
     resolved_tokenize_cfg = replace(tokenize_cfg, src_lang=tokenize_cfg.src_lang or map_cfg.src_lang)
     resolved_map_cfg = replace(
         map_cfg,
@@ -286,6 +325,8 @@ def preprocess(
         tgt_bos_id=training_token_ids["tgt_bos_id"] if map_cfg.tgt_bos_id is None else map_cfg.tgt_bos_id,
         tgt_eos_id=training_token_ids["tgt_eos_id"] if map_cfg.tgt_eos_id is None else map_cfg.tgt_eos_id,
     )
+
+    # write preprocess_config.yaml
     parameters = {
         "schema_version": "1",
         "created_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
@@ -310,34 +351,12 @@ def preprocess(
     map(resolved_map_cfg, paths["tokenize_output"], paths["map_output"])
 
     mapped = load(paths["map_output"])
-    tokenizer_vocab_size = getattr(tokenizer, "vocab_size", None)
-    if tokenizer_vocab_size is None:
-        raise ValueError("Tokenizer must define vocab_size for dataset metadata.")
-    base_vocab_size = int(tokenizer_vocab_size)
-    src_vocab_size = max(base_vocab_size, training_token_ids["src_pad_id"] + 1)
-    tgt_vocab_size = max(
-        base_vocab_size,
-        training_token_ids["tgt_pad_id"] + 1,
-        training_token_ids["tgt_bos_id"] + 1,
-        training_token_ids["tgt_eos_id"] + 1,
-    )
-    dataset_manifest = build_dataset_meta(
-        tokenizer_model_name=resolved_tokenize_cfg.tokenizer_model_name,
-        src_lang=resolved_map_cfg.src_lang,
-        tgt_lang=resolved_map_cfg.tgt_lang,
-        id_field=resolved_map_cfg.id_key or "id",
-        src_field="src_ids",
-        tgt_field="tgt_ids",
-        base_vocab_size=base_vocab_size,
-        src_vocab_size=src_vocab_size,
-        tgt_vocab_size=tgt_vocab_size,
-        src_pad_id=training_token_ids["src_pad_id"],
-        tgt_pad_id=training_token_ids["tgt_pad_id"],
-        tgt_bos_id=training_token_ids["tgt_bos_id"],
-        tgt_eos_id=training_token_ids["tgt_eos_id"],
-        num_examples=len(mapped),
-        configured_max_seq_len=resolved_tokenize_cfg.max_seq_len,
+
+    # write dataset_manifest.yaml
+    dataset_manifest = _collect_dataset_metadata(
+        tokenizer, training_token_ids, resolved_tokenize_cfg, resolved_map_cfg, len(mapped)
     )
     with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
+    
     save(mapped, paths["preprocessed_output"])
