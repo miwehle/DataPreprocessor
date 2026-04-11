@@ -6,10 +6,7 @@ from data_preprocessor.shared import Example, MapConfig
 
 
 def _normalize_target_ids(
-    input_ids: list[int],
-    *,
-    tgt_bos_id: int | None,
-    tgt_eos_id: int | None,
+    input_ids: list[int], *, tgt_bos_id: int | None, tgt_eos_id: int | None
 ) -> list[int]:
     """Ensure IDs start with BOS and end with EOS when configured."""
     normalized = [int(x) for x in input_ids]
@@ -49,11 +46,7 @@ def map_examples(ds: Iterable[Example], config: MapConfig) -> Iterator[Example]:
             tgt_bos_id=config.tgt_bos_id,
             tgt_eos_id=config.tgt_eos_id,
         )
-        out: Example = {
-            "id": int(ex[config.id_key or "id"]),
-            "src_ids": src_ids,
-            "tgt_ids": tgt_ids,
-        }
+        out: Example = {"id": int(ex[config.id_key or "id"]), "src_ids": src_ids, "tgt_ids": tgt_ids}
         if config.include_text:
             translation = ex["translation"]
             out["src_text"] = str(translation[config.src_lang])

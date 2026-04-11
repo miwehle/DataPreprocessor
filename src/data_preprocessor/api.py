@@ -40,7 +40,6 @@ from data_preprocessor.tokenizer import (
 
 from .io import load, save
 
-
 _log_calls = log_calls(lambda: _artifacts_root() / "data_preprocessor.log")
 
 
@@ -57,10 +56,7 @@ def _run_output_roots(
     run_name: str, staging_root: Path, final_root: Path, run_index: int | None = None
 ) -> tuple[Path, Path]:
     suffix = f" ({run_index})" if run_index is not None else ""
-    return (
-        staging_root / f"{run_name}_staging{suffix}",
-        final_root / f"{run_name}{suffix}",
-    )
+    return (staging_root / f"{run_name}_staging{suffix}", final_root / f"{run_name}{suffix}")
 
 
 def _next_available_run_name(base_name: str, staging_root: Path, final_root: Path) -> str:
@@ -96,10 +92,7 @@ def _staging_root(artifacts_dir: str | Path | None, staging_dir: str | Path | No
 def _current_git_commit() -> str | None:
     try:
         out = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            text=True,
-            cwd=str(_repo_root()),
+            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True, cwd=str(_repo_root())
         )
         commit = out.strip()
         return commit if commit else None
@@ -110,10 +103,7 @@ def _current_git_commit() -> str | None:
 def _current_git_status() -> str:
     try:
         out = subprocess.check_output(
-            ["git", "status", "--porcelain"],
-            stderr=subprocess.DEVNULL,
-            text=True,
-            cwd=str(_repo_root()),
+            ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL, text=True, cwd=str(_repo_root())
         )
         return "no local changes" if out.strip() == "" else "local changes exist"
     except Exception:
@@ -148,15 +138,15 @@ def _run_with_optional_report(
     transform: Callable[[Iterable[dict], Any | None], Iterable[dict]],
 ) -> None:
     ds = load(input_path)
-    report_context = (
-        closing(make_report(report_path)) if report_path is not None else nullcontext(None)
-    )
+    report_context = closing(make_report(report_path)) if report_path is not None else nullcontext(None)
     with report_context as report:
         save(transform(ds, report), output_path)
 
 
 def _validate_preprocess_configs(
-    download_cfg: DownloadConfig, tokenize_cfg: TokenizeConfig, map_cfg: MapConfig,
+    download_cfg: DownloadConfig,
+    tokenize_cfg: TokenizeConfig,
+    map_cfg: MapConfig,
     training_token_ids: dict[str, int],
 ) -> None:
     if tokenize_cfg.src_lang is not None and tokenize_cfg.src_lang != map_cfg.src_lang:
@@ -306,7 +296,7 @@ def preprocess(
     the training data loader) still pads src/tgt sequences to the batch-local max
     length, stacks them into tensors, and returns the batch IDs alongside them.
     """
-    
+
     # initialize configs and output paths
     norm_cfg = norm_cfg or NormConfig()
     filter_cfg = filter_cfg or FilterConfig()
@@ -365,7 +355,9 @@ def preprocess(
     download(download_cfg, paths["raw_output"])
     norm(norm_cfg, paths["raw_output"], paths["norm_output"], paths["norm_report"])
     filter(filter_cfg, paths["norm_output"], paths["filter_output"], paths["flaw_report"])
-    tokenize(resolved_tokenize_cfg, paths["filter_output"], paths["tokenize_output"], paths["tokenize_report"])
+    tokenize(
+        resolved_tokenize_cfg, paths["filter_output"], paths["tokenize_output"], paths["tokenize_report"]
+    )
     map(resolved_map_cfg, paths["tokenize_output"], paths["map_output"])
 
     mapped = load(paths["map_output"])
@@ -376,5 +368,5 @@ def preprocess(
     )
     with paths["dataset_manifest"].open("w", encoding="utf-8") as f:
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
-    
+
     save(mapped, paths["preprocessed_output"])

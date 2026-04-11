@@ -49,10 +49,7 @@ def test_map_examples_can_prepend_tgt_bos_and_ensure_tgt_eos():
         {
             "id": 9,
             "translation": {"de": "guten morgen", "en": "good morning"},
-            "tokenized_translation": {
-                "de": {"input_ids": [10, 11, 0]},
-                "en": {"input_ids": [40, 41, 0]},
-            },
+            "tokenized_translation": {"de": {"input_ids": [10, 11, 0]}, "en": {"input_ids": [40, 41, 0]}},
         }
     ]
 

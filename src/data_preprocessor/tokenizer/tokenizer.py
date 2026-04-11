@@ -4,13 +4,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from ..shared import TokenizeConfig, log_calls
-from .tokenize_example import (
-    Example,
-    TokenizeReporter,
-    Tokenizer,
-    tokenize_example,
-)
-
+from .tokenize_example import Example, TokenizeReporter, Tokenizer, tokenize_example
 
 _log_calls = log_calls(lambda: Path(__file__).resolve().parents[4] / "artifacts" / "data_preprocessor.log")
 
@@ -46,9 +40,7 @@ def resolve_training_token_ids(tokenizer: Any) -> dict[str, int]:
         raise ValueError("Tokenizer must define pad_token_id for training output.")
 
     if bos_token_id is None:
-        max_special_id = max(
-            int(x) for x in [eos_token_id, pad_token_id, unk_token_id] if x is not None
-        )
+        max_special_id = max(int(x) for x in [eos_token_id, pad_token_id, unk_token_id] if x is not None)
         bos_token_id = max_special_id + 1
 
     return {

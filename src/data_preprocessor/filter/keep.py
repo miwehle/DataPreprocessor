@@ -50,12 +50,7 @@ class FlawReport:
         self.out.close()
 
 
-def keep(
-    ex: Example,
-    text_flaws=(),
-    pair_flaws=(),
-    flaw_reporter: FlawReporter | None = None,
-):
+def keep(ex: Example, text_flaws=(), pair_flaws=(), flaw_reporter: FlawReporter | None = None):
     """Return True for clean examples and optionally report flaw findings."""
 
     def check(x, flaws):

@@ -40,10 +40,7 @@ def test_tokenize_report_matches_expected():
 
 
 def test_tokenize_example_adds_expected_structure():
-    ex = {
-        "id": "sample-1",
-        "translation": {"de": "eins zwei drei vier", "en": "one two three four"},
-    }
+    ex = {"id": "sample-1", "translation": {"de": "eins zwei drei vier", "en": "one two three four"}}
 
     out = tokenize_example(
         ex, tokenizer=DummyTokenizer(), tokenizer_kwargs={"truncation": True, "max_length": 3}

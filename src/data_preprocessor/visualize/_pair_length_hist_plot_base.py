@@ -10,12 +10,14 @@ try:
 except ImportError:
     import plot_utils as pu
 
+
 def _records(dataset_path: str | Path, progress=None):
     path = Path(dataset_path)
     if path.suffix.lower() != ".jsonl":
         if progress is not None:
             progress(None)
         from datasets import load_from_disk
+
         yield from load_from_disk(str(path))
         if progress is not None:
             progress(1.0)
@@ -39,6 +41,7 @@ def _records(dataset_path: str | Path, progress=None):
     if progress is not None:
         progress(1.0)
 
+
 def load_pair_lengths(
     dataset_path: str | Path, extract_lengths, progress=None
 ) -> tuple[list[int], list[int]]:
@@ -50,6 +53,7 @@ def load_pair_lengths(
         de_lengths.append(lengths[0])
         en_lengths.append(lengths[1])
     return de_lengths, en_lengths
+
 
 def plot_pair_length_histogram(
     de_lengths: list[int],
@@ -77,10 +81,7 @@ def plot_pair_length_histogram(
         (de_lengths, 0.55, "#1f77b4", "de"),
         (en_lengths, 0.45, "#ff7f0e", "en"),
     ):
-        ax.hist(
-            lengths, bins, alpha=alpha, color=color, edgecolor="black",
-            linewidth=0.25, label=label,
-        )
+        ax.hist(lengths, bins, alpha=alpha, color=color, edgecolor="black", linewidth=0.25, label=label)
     ax.set_title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel("Count")

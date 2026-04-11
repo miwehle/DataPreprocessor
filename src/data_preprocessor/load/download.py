@@ -23,8 +23,7 @@ def attach_ids(
         if id_field in records.column_names:
             if not overwrite_ids:
                 raise ValueError(
-                    f"ID field '{id_field}' already exists. "
-                    "Set overwrite_ids=True to replace it."
+                    f"ID field '{id_field}' already exists. " "Set overwrite_ids=True to replace it."
                 )
             records = records.remove_columns(id_field)
 
@@ -69,7 +68,7 @@ def download_examples(config: DownloadConfig) -> Dataset | list[Example]:
     Raises:
         ValueError: If ``source_format`` is unsupported.
         ValueError: If the ID field already exists and ``overwrite_ids`` is false.
-    """    
+    """
     if config.source_format == "hf":
         ds = load_dataset(config.dataset, config.config, split=config.split)
     elif config.source_format == "hf_parquet":
@@ -84,8 +83,7 @@ def download_examples(config: DownloadConfig) -> Dataset | list[Example]:
         )
     else:
         raise ValueError(
-            f"Unsupported source_format {config.source_format!r}. "
-            "Expected 'hf' or 'hf_parquet'."
+            f"Unsupported source_format {config.source_format!r}. " "Expected 'hf' or 'hf_parquet'."
         )
     records = ds if config.max_examples is None else ds.select(range(min(config.max_examples, len(ds))))
     return attach_ids(

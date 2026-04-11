@@ -50,8 +50,7 @@ def plot_flaw_counts(report_path: str | Path, show_loading: bool = False):
     fig_pair, ax_pair = plt.subplots(figsize=(12, 6))
 
     pu.plot_grouped_category_counts(
-        fig_text, ax_text, text_flaws, de_counts, en_counts,
-        "de_flaws", "en_flaws", "No de/en flaws found",
+        fig_text, ax_text, text_flaws, de_counts, en_counts, "de_flaws", "en_flaws", "No de/en flaws found"
     )
 
     ax_text.set_title("Flaw Counts: de_flaws and en_flaws")
@@ -67,9 +66,7 @@ def plot_flaw_counts(report_path: str | Path, show_loading: bool = False):
             x_pair, [pair_counts.get(f, 0) for f in pair_flaws], width=0.6, label="pair_flaws"
         )
         ax_pair.set_xticks(x_pair)
-        ax_pair.set_xticklabels(
-            [pu.format_wrapped_label(f) for f in pair_flaws], rotation=0, ha="center"
-        )
+        ax_pair.set_xticklabels([pu.format_wrapped_label(f) for f in pair_flaws], rotation=0, ha="center")
         ax_pair.legend()
         pu.add_headroom(ax_pair, pair_bars)
         pair_annotations = pu.annotate_bars(ax_pair, pair_bars)

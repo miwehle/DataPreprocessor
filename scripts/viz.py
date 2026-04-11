@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from data_preprocessor.visualize import flaws, norms, pairs, token_pairs
@@ -24,9 +23,7 @@ def _resolve_input_path(staging_path: Path, mode: str) -> Path:
         return matches[0]
     if not matches:
         raise FileNotFoundError(f"No file ending with {suffix} in {staging_path}")
-    raise ValueError(
-        f"Expected one file ending with {suffix} in {staging_path}, found {len(matches)}"
-    )
+    raise ValueError(f"Expected one file ending with {suffix} in {staging_path}, found {len(matches)}")
 
 
 def main() -> int:

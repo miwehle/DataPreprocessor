@@ -19,9 +19,7 @@ def _patch_common_io(monkeypatch, *, capture_save: bool, calls: list[tuple[str, 
     monkeypatch.setattr(api, "load", lambda path: [])
     if capture_save:
         monkeypatch.setattr(
-            api,
-            "save",
-            lambda examples, output_path: calls.append(("save", {"output_path": output_path})),
+            api, "save", lambda examples, output_path: calls.append(("save", {"output_path": output_path}))
         )
     else:
         monkeypatch.setattr(api, "save", lambda examples, output_path: None)
@@ -46,12 +44,7 @@ def _patch_training_token_ids(monkeypatch) -> None:
     monkeypatch.setattr(
         api,
         "resolve_training_token_ids",
-        lambda tokenizer: {
-            "src_pad_id": 58100,
-            "tgt_pad_id": 58100,
-            "tgt_bos_id": 58101,
-            "tgt_eos_id": 0,
-        },
+        lambda tokenizer: {"src_pad_id": 58100, "tgt_pad_id": 58100, "tgt_bos_id": 58101, "tgt_eos_id": 0},
     )
 
 
@@ -83,11 +76,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
     assert tokenize_call["args"][0].src_lang == "de"
     assert calls[-2][1]["args"][0].include_text is True
     assert calls[0][1]["args"][1] == (
-        run_dir
-        / "artifacts"
-        / "datasets"
-        / "europarl_de-en_train_123_staging"
-        / "europarl_raw.jsonl"
+        run_dir / "artifacts" / "datasets" / "europarl_de-en_train_123_staging" / "europarl_raw.jsonl"
     )
 
 
@@ -162,7 +151,9 @@ def test_filter_uses_configured_predicates(monkeypatch):
     monkeypatch.setattr(api, "filter_examples", fake_filter_examples)
 
     api.filter(
-        api.FilterConfig(predicates=["is_blank", ["is_too_short", {"min": 5}]], pair_predicates=["are_equal"]),
+        api.FilterConfig(
+            predicates=["is_blank", ["is_too_short", {"min": 5}]], pair_predicates=["are_equal"]
+        ),
         "in.jsonl",
         "out.jsonl",
         None,
@@ -190,8 +181,7 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
 
-    manifest_path = (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "dataset_manifest.yaml")
+    manifest_path = run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "dataset_manifest.yaml"
     assert manifest_path.is_file()
 
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
@@ -224,11 +214,7 @@ def test_preprocess_uses_incremented_dataset_dir(monkeypatch):
     _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
 
-    (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train"
-    ).mkdir(
-        parents=True, exist_ok=True
-    )
+    (run_dir / "artifacts" / "datasets" / "europarl_de-en_train").mkdir(parents=True, exist_ok=True)
 
     api.preprocess(
         download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
@@ -236,15 +222,11 @@ def test_preprocess_uses_incremented_dataset_dir(monkeypatch):
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
 
-    assert (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)"
-    ).is_dir()
+    assert (run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)").is_dir()
     assert calls[0][1]["args"][1] == (
         run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)_staging" / "europarl_raw.jsonl"
     )
-    assert calls[-1][1]["output_path"] == (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)"
-    )
+    assert calls[-1][1]["output_path"] == (run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)")
 
 
 def test_preprocess_logs_to_dataset_preprocess_log(monkeypatch):
@@ -258,9 +240,7 @@ def test_preprocess_logs_to_dataset_preprocess_log(monkeypatch):
     monkeypatch.setattr(api, "filter_examples", lambda ds, keep_fn: ds)
     monkeypatch.setattr(api, "map_examples", lambda ds, config: ds)
     monkeypatch.setattr(
-        api,
-        "tokenize_examples",
-        lambda ds, config, tokenizer, tokenize_reporter=None: iter(ds),
+        api, "tokenize_examples", lambda ds, config, tokenizer, tokenize_reporter=None: iter(ds)
     )
     _patch_training_token_ids(monkeypatch)
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")

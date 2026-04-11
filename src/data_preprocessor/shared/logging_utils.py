@@ -22,8 +22,7 @@ def _configure_logger(path: Path) -> logging.Logger:
     logger.setLevel(logging.INFO)
     logger.propagate = False
     current_path = next(
-        (Path(handler.baseFilename) for handler in logger.handlers if hasattr(handler, "baseFilename")),
-        None,
+        (Path(handler.baseFilename) for handler in logger.handlers if hasattr(handler, "baseFilename")), None
     )
     if current_path != path:
         _close_logger_handlers(logger)

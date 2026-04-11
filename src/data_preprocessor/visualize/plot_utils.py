@@ -223,9 +223,7 @@ def set_coord_display(ax) -> None:
     def _fmt(v: float, width: int) -> str:
         return f"{v:>{width}.2f}"
 
-    ax.format_coord = lambda x, y: (
-        f"{_fmt(x, _width(ax.get_xlim()))} {_fmt(y, _width(ax.get_ylim()))}"
-    )
+    ax.format_coord = lambda x, y: (f"{_fmt(x, _width(ax.get_xlim()))} {_fmt(y, _width(ax.get_ylim()))}")
 
 
 def attach_toolbar_hint(fig, text: str):
@@ -239,9 +237,7 @@ def attach_toolbar_hint(fig, text: str):
     except ImportError:
         return None
 
-    label = tk.Label(
-        master=toolbar, text=text, font=getattr(toolbar, "_label_font", None), padx=8
-    )
+    label = tk.Label(master=toolbar, text=text, font=getattr(toolbar, "_label_font", None), padx=8)
     label.pack(side=tk.LEFT)
     toolbar._codex_hint_label = label
     return label
@@ -284,21 +280,17 @@ def plot_grouped_category_counts(
     x = list(range(len(categories)))
     width = 0.35
     left_bars = ax.bar(
-        [i - width / 2 for i in x], [left_counts.get(c, 0) for c in categories], width,
-        label=left_label,
+        [i - width / 2 for i in x], [left_counts.get(c, 0) for c in categories], width, label=left_label
     )
     right_bars = ax.bar(
-        [i + width / 2 for i in x], [right_counts.get(c, 0) for c in categories], width,
-        label=right_label,
+        [i + width / 2 for i in x], [right_counts.get(c, 0) for c in categories], width, label=right_label
     )
     ax.set_xticks(x)
     ax.set_xticklabels([format_wrapped_label(c) for c in categories], rotation=0, ha="center")
     ax.legend()
     bars = list(left_bars) + list(right_bars)
     add_headroom(ax, bars)
-    attach_adaptive_value_labels(
-        fig, bars, annotate_bars(ax, left_bars) + annotate_bars(ax, right_bars)
-    )
+    attach_adaptive_value_labels(fig, bars, annotate_bars(ax, left_bars) + annotate_bars(ax, right_bars))
 
 
 def integer_histogram_bins(*value_series, max_bins: int = 60) -> list[float]:

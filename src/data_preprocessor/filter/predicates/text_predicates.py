@@ -9,7 +9,6 @@ import re
 import unicodedata
 from typing import Iterable
 
-
 # --- URL / Email -------------------------------------------------------------
 
 _URL_RE = re.compile(
@@ -182,9 +181,8 @@ def has_unbalanced_brackets(text: str) -> bool:
 
 # --- Script heuristics -------------------------------------------------------
 
-def target_not_latin_like(
-    text: str, *, min_letters: int = 20, min_latin_ratio: float = 0.6
-) -> bool:
+
+def target_not_latin_like(text: str, *, min_letters: int = 20, min_latin_ratio: float = 0.6) -> bool:
     letter_count = 0
     latin_count = 0
 

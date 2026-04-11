@@ -31,8 +31,14 @@ def plot_norm_counts(report_path: str | Path):
 
     fig, ax = plt.subplots(figsize=(12, 6))
     pu.plot_grouped_category_counts(
-        fig, ax, norm_changes, de_counts, en_counts,
-        "de_norm_changes", "en_norm_changes", "No norm changes found",
+        fig,
+        ax,
+        norm_changes,
+        de_counts,
+        en_counts,
+        "de_norm_changes",
+        "en_norm_changes",
+        "No norm changes found",
     )
     ax.set_title("Norm Change Counts")
     ax.set_xlabel("Norm change")

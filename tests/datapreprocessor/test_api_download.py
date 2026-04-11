@@ -25,10 +25,7 @@ def _make_out_path() -> Path:
 
 def test_download_adds_ids_by_default(monkeypatch):
     ds = Dataset.from_list(
-        [
-            {"translation": {"de": "eins", "en": "one"}},
-            {"translation": {"de": "zwei", "en": "two"}},
-        ]
+        [{"translation": {"de": "eins", "en": "one"}}, {"translation": {"de": "zwei", "en": "two"}}]
     )
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
@@ -44,19 +41,14 @@ def test_download_can_disable_ids(monkeypatch):
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
-    api.download(
-        api.DownloadConfig(dataset="dummy", config="de-en", split="train", include_ids=False),
-        out,
-    )
+    api.download(api.DownloadConfig(dataset="dummy", config="de-en", split="train", include_ids=False), out)
 
     rows = _read_jsonl(out)
     assert "id" not in rows[0]
 
 
 def test_download_raises_if_id_exists_and_overwrite_disabled(monkeypatch):
-    ds = Dataset.from_list(
-        [{"id": 42, "translation": {"de": "eins", "en": "one"}}]
-    )
+    ds = Dataset.from_list([{"id": 42, "translation": {"de": "eins", "en": "one"}}])
     monkeypatch.setattr(load_module, "load_dataset", lambda *args, **kwargs: ds)
     out = _make_out_path()
 
@@ -78,9 +70,7 @@ def test_download_can_overwrite_existing_id(monkeypatch):
     out = _make_out_path()
 
     api.download(
-        api.DownloadConfig(
-            dataset="dummy", config="de-en", split="train", overwrite_ids=True, start_id=100
-        ),
+        api.DownloadConfig(dataset="dummy", config="de-en", split="train", overwrite_ids=True, start_id=100),
         out,
     )
 
@@ -101,10 +91,7 @@ def test_download_can_load_hf_parquet(monkeypatch):
 
     api.download(
         api.DownloadConfig(
-            dataset="IWSLT/iwslt2017",
-            config="iwslt2017-de-en",
-            split="train",
-            source_format="hf_parquet",
+            dataset="IWSLT/iwslt2017", config="iwslt2017-de-en", split="train", source_format="hf_parquet"
         ),
         out,
     )

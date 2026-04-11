@@ -9,6 +9,7 @@ try:
 except ImportError:
     import _pair_length_hist_plot_base as base
 
+
 def _extract_pair_lengths(record: dict) -> tuple[int, int] | None:
     translation = record.get("translation")
     if isinstance(translation, dict):
@@ -19,8 +20,10 @@ def _extract_pair_lengths(record: dict) -> tuple[int, int] | None:
         return None
     return len(str(de)), len(str(en))
 
+
 def load_pair_lengths(dataset_path: str | Path) -> tuple[list[int], list[int]]:
     return base.load_pair_lengths(dataset_path, _extract_pair_lengths)
+
 
 def plot_pair_length_histogram(
     dataset_path: str | Path,
@@ -36,16 +39,27 @@ def plot_pair_length_histogram(
         fig, ax, progress = base.pu.show_loading_plot(title)
     de_lengths, en_lengths = base.load_pair_lengths(dataset_path, _extract_pair_lengths, progress)
     return base.plot_pair_length_histogram(
-        de_lengths, en_lengths, title, "Text length (characters)", max_bins,
-        x_scale, y_scale, interactive_scale_toggle, fig, ax,
+        de_lengths,
+        en_lengths,
+        title,
+        "Text length (characters)",
+        max_bins,
+        x_scale,
+        y_scale,
+        interactive_scale_toggle,
+        fig,
+        ax,
     )
+
 
 def main() -> None:
     run("../artifacts/datasets/iwslt2017_iwslt2017-de-en_train_staging (3)/iwslt2017_raw.jsonl")
 
+
 def run(dataset_path: str | Path) -> None:
     plot_pair_length_histogram(dataset_path, show_loading=True)
     plt.show()
+
 
 if __name__ == "__main__":
     main()

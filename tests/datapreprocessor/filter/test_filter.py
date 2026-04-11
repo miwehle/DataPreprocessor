@@ -33,9 +33,7 @@ def test_filter_with_keep():
                     "has_unbalanced_brackets",
                 ]
             ),
-            pair_flaws=pair_predicates(
-                [["bad_length_ratio", {"min": 0.33, "max": 3}], "are_equal"]
-            ),
+            pair_flaws=pair_predicates([["bad_length_ratio", {"min": 0.33, "max": 3}], "are_equal"]),
         ),
     )
 

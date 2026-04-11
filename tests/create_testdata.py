@@ -5,7 +5,6 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-
 NUM_EXAMPLES = 1000
 OUT_PATH = Path("tests/data/testdata_de_en_1000.jsonl")
 

@@ -19,11 +19,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
                 "artifacts_dir": "/content/drive/MyDrive/nmt_lab/artifacts",
                 "staging_dir": "/content/data_preprocessor_staging",
                 "write_jsonl": False,
-                "download_cfg": {
-                    "dataset": "Helsinki-NLP/europarl",
-                    "config": "de-en",
-                    "split": "train",
-                },
+                "download_cfg": {"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
                 "tokenize_cfg": {"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
                 "map_cfg": {"src_lang": "de", "tgt_lang": "en", "include_text": True},
             }
@@ -44,8 +40,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
 
     with pytest.raises(SystemExit) as excinfo:
         runpy.run_path(
-            str(Path(__file__).resolve().parents[1] / "scripts" / "preprocess.py"),
-            run_name="__main__",
+            str(Path(__file__).resolve().parents[1] / "scripts" / "preprocess.py"), run_name="__main__"
         )
 
     assert excinfo.value.code == 0
