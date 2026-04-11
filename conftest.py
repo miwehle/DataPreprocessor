@@ -1,16 +1,23 @@
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+SRC = PROJECT_ROOT / "src"
+SHARED_SRC = PROJECT_ROOT.parent / "nmt_lab_shared" / "src"
 TMP = PROJECT_ROOT / ".local_tmp"
 HF_HOME = PROJECT_ROOT / ".hf_home"
 HF_DATASETS_CACHE = HF_HOME / "datasets"
 
 for path in (TMP, HF_HOME, HF_DATASETS_CACHE):
     path.mkdir(parents=True, exist_ok=True)
+
+for path in (SRC, SHARED_SRC):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 os.environ["TEMP"] = str(TMP)
 os.environ["TMP"] = str(TMP)

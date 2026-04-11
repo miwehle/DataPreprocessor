@@ -3,10 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-from ..shared import TokenizeConfig, log_calls
+from nmt_lab_shared.logging import get_logger, log_calls
+
+from ..shared import TokenizeConfig
 from .tokenize_example import Example, TokenizeReporter, Tokenizer, tokenize_example
 
-_log_calls = log_calls(lambda: Path(__file__).resolve().parents[4] / "artifacts" / "data_preprocessor.log")
+_log_calls = log_calls(
+    get_logger("data_preprocessor", log_path=Path(__file__).resolve().parents[4] / "artifacts" / "data_preprocessor.log")
+)
 
 
 @_log_calls

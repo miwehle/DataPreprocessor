@@ -7,30 +7,22 @@ specialized `data_preprocessor.*` modules. Keep business logic out of this file.
 from __future__ import annotations
 
 import re
-import subprocess
 from collections.abc import Callable, Iterable
 from contextlib import closing, nullcontext
 from dataclasses import asdict, replace
-from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
 from typing import Any
 
 import yaml
+from nmt_lab_shared.logging import get_logger, log_calls
+from nmt_lab_shared.run_config import write_run_config
 
 from data_preprocessor.filter import FlawReport, filter_examples, keep, pair_predicates, predicates
 from data_preprocessor.load import download_examples
 from data_preprocessor.map import map_examples
 from data_preprocessor.norm import NormReport, changes as norm_changes, norm_examples
-from data_preprocessor.shared import (
-    DownloadConfig,
-    FilterConfig,
-    MapConfig,
-    NormConfig,
-    TokenizeConfig,
-    configure_data_preprocessor_logging,
-    log_calls,
-)
+from data_preprocessor.shared import DownloadConfig, FilterConfig, MapConfig, NormConfig, TokenizeConfig
 from data_preprocessor.tokenizer import (
     TokenizeReport,
     create_hf_tokenizer,
@@ -39,8 +31,6 @@ from data_preprocessor.tokenizer import (
 )
 
 from .io import load, save
-
-_log_calls = log_calls(lambda: _artifacts_root() / "data_preprocessor.log")
 
 
 def _dataset_name_for_filesystem(dataset: str) -> str:
@@ -87,27 +77,6 @@ def _datasets_root(artifacts_dir: str | Path | None) -> Path:
 
 def _staging_root(artifacts_dir: str | Path | None, staging_dir: str | Path | None) -> Path:
     return Path(staging_dir) if staging_dir is not None else _datasets_root(artifacts_dir)
-
-
-def _current_git_commit() -> str | None:
-    try:
-        out = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True, cwd=str(_repo_root())
-        )
-        commit = out.strip()
-        return commit if commit else None
-    except Exception:
-        return None
-
-
-def _current_git_status() -> str:
-    try:
-        out = subprocess.check_output(
-            ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL, text=True, cwd=str(_repo_root())
-        )
-        return "no local changes" if out.strip() == "" else "local changes exist"
-    except Exception:
-        return "local changes exist"
 
 
 def _default_paths(
@@ -205,6 +174,9 @@ def _collect_dataset_metadata(
         "num_examples": num_examples,
         "configured_max_seq_len": tokenize_cfg.max_seq_len,
     }
+
+
+_log_calls = log_calls(get_logger("data_preprocessor", log_path=_artifacts_root() / "data_preprocessor.log"))
 
 
 @_log_calls
@@ -316,7 +288,7 @@ def preprocess(
     )
     for path in paths.values():
         path.parent.mkdir(parents=True, exist_ok=True)
-    configure_data_preprocessor_logging(log_path=paths["preprocessed_output"] / "preprocess.log")
+    get_logger("data_preprocessor", log_path=paths["preprocessed_output"] / "preprocess.log")
 
     tokenizer = create_hf_tokenizer(tokenize_cfg.tokenizer_model_name)
     training_token_ids = resolve_training_token_ids(tokenizer)
@@ -333,23 +305,22 @@ def preprocess(
     )
 
     # write preprocess_config.yaml
-    parameters = {
-        "schema_version": "1",
-        "created_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-        "data_preprocessor_git_commit": _current_git_commit(),
-        "data_preprocessor_git_status": _current_git_status(),
-        "dataset_schema_version": "1",
-        "write_jsonl": write_jsonl,
-        "artifacts_dir": None if artifacts_dir is None else str(artifacts_dir),
-        "staging_dir": None if staging_dir is None else str(staging_dir),
-        "download_cfg": asdict(download_cfg),
-        "norm_cfg": asdict(norm_cfg),
-        "filter_cfg": asdict(filter_cfg),
-        "tokenize_cfg": asdict(resolved_tokenize_cfg),
-        "map_cfg": asdict(resolved_map_cfg),
-    }
-    with paths["preprocess_config"].open("w", encoding="utf-8") as f:
-        yaml.safe_dump(parameters, f, sort_keys=False, allow_unicode=True)
+    write_run_config(
+        paths["preprocess_config"],
+        {
+            "dataset_schema_version": "1",
+            "write_jsonl": write_jsonl,
+            "artifacts_dir": None if artifacts_dir is None else str(artifacts_dir),
+            "staging_dir": None if staging_dir is None else str(staging_dir),
+            "download_cfg": asdict(download_cfg),
+            "norm_cfg": asdict(norm_cfg),
+            "filter_cfg": asdict(filter_cfg),
+            "tokenize_cfg": asdict(resolved_tokenize_cfg),
+            "map_cfg": asdict(resolved_map_cfg),
+        },
+        repo_root=_repo_root(),
+        git_key_prefix="data_preprocessor",
+    )
 
     # core
     download(download_cfg, paths["raw_output"])

@@ -14,27 +14,25 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import yaml
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
-from data_preprocessor import DownloadConfig, FilterConfig, MapConfig, NormConfig, TokenizeConfig, preprocess
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = REPO_ROOT / "src"
+SHARED_SRC_DIR = REPO_ROOT.parent / "nmt_lab_shared" / "src"
+for path in (SRC_DIR, SHARED_SRC_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 
 def main() -> int:
+    from nmt_lab_shared.run_config import read_run_config
+
+    from data_preprocessor import DownloadConfig, FilterConfig, MapConfig, NormConfig, TokenizeConfig, preprocess
+
     if len(sys.argv) != 2:
         print("Usage: python scripts/preprocess.py <config-path>")
         return 1
 
-    config_path = Path(sys.argv[1])
     try:
-        with config_path.open("r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-    except Exception as exc:
-        print(f"Failed to load config: {exc}")
-        return 1
-
-    try:
+        cfg = read_run_config(Path(sys.argv[1]))
         preprocess(
             download_cfg=DownloadConfig(**cfg["download_cfg"]),
             tokenize_cfg=TokenizeConfig(**cfg["tokenize_cfg"]),
