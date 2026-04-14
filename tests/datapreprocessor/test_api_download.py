@@ -115,6 +115,7 @@ def test_download_passes_data_files_through(monkeypatch):
     api.download(
         api.DownloadConfig(
             path_name="parquet",
+            split="train",
             data_files="https://huggingface.co/datasets/org/ds/resolve/rev/name/train.parquet",
         ),
         out,
@@ -128,7 +129,7 @@ def test_download_passes_data_files_through(monkeypatch):
             {
                 "path": "parquet",
                 "name": None,
-                "split": None,
+                "split": "train",
                 "data_files": "https://huggingface.co/datasets/org/ds/resolve/rev/name/train.parquet",
             },
         )

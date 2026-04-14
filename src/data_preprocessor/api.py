@@ -118,6 +118,8 @@ def _validate_preprocess_configs(
     map_cfg: MapConfig,
     training_token_ids: dict[str, int],
 ) -> None:
+    if download_cfg.data_files is not None and download_cfg.dataset_name is None:
+        raise ValueError("download_cfg.dataset_name is required when download_cfg.data_files is set.")
     if tokenize_cfg.src_lang is not None and tokenize_cfg.src_lang != map_cfg.src_lang:
         raise ValueError(
             f"Conflicting src_lang values: tokenize_cfg={tokenize_cfg.src_lang!r}, "
@@ -272,12 +274,11 @@ def preprocess(
     # initialize configs and output paths
     norm_cfg = norm_cfg or NormConfig()
     filter_cfg = filter_cfg or FilterConfig()
-    dataset_name = _dataset_name_for_filesystem(download_cfg.path_name)
+    dataset_name = download_cfg.dataset_name or _dataset_name_for_filesystem(download_cfg.path_name)
     dataset_dir_name = dataset_name
-    if download_cfg.name is not None:
+    if download_cfg.dataset_name is None and download_cfg.name is not None:
         dataset_dir_name = f"{dataset_dir_name}_{download_cfg.name}"
-    if download_cfg.split is not None:
-        dataset_dir_name = f"{dataset_dir_name}_{download_cfg.split}"
+    dataset_dir_name = f"{dataset_dir_name}_{download_cfg.split}"
     if download_cfg.max_examples is not None:
         dataset_dir_name = f"{dataset_dir_name}_{download_cfg.max_examples}"
     final_root = _datasets_root(artifacts_dir)

@@ -8,8 +8,9 @@ from typing import Any
 class DownloadConfig:
     path_name: str
     name: str | None = None
-    split: str | None = None
+    split: str
     data_files: str | list[str] | dict[str, str | list[str]] | None = None
+    dataset_name: str | None = None
     max_examples: int | None = None
     include_ids: bool = True
     id_field: str = "id"

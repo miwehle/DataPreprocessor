@@ -276,3 +276,63 @@ def test_preprocess_uses_separate_staging_dir(monkeypatch):
 
     assert calls[0][1]["args"][1] == staging_root / "europarl_de-en_train_staging" / "europarl_raw.jsonl"
     assert calls[-1][1]["output_path"] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train"
+
+
+def test_preprocess_uses_dataset_name_for_generic_downloads(monkeypatch):
+    seen_raw_output_paths: list[Path] = []
+    seen_map_output_paths: list[Path] = []
+    run_dir = _run_dir()
+    monkeypatch.chdir(run_dir)
+
+    def fake_download(config, output_path):
+        seen_raw_output_paths.append(Path(output_path))
+
+    def fake_map(config, input_path, output_path):
+        seen_map_output_paths.append(Path(output_path))
+
+    _patch_common_io(monkeypatch, capture_save=False, calls=[])
+    _patch_training_token_ids(monkeypatch)
+    monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
+    monkeypatch.setattr(api, "download", fake_download)
+    monkeypatch.setattr(api, "norm", lambda config, input_path, output_path, report_path=None: None)
+    monkeypatch.setattr(api, "filter", lambda config, input_path, output_path, report_path=None: None)
+    monkeypatch.setattr(api, "tokenize", lambda config, input_path, output_path, report_path=None: None)
+    monkeypatch.setattr(api, "map", fake_map)
+
+    api.preprocess(
+        download_cfg=api.DownloadConfig(
+            path_name="parquet",
+            split="train",
+            data_files="https://huggingface.co/datasets/org/ds/resolve/rev/name/train.parquet",
+            dataset_name="iwslt2017-de-en",
+        ),
+        tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
+        map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
+    )
+
+    assert seen_raw_output_paths[0].name == "iwslt2017-de-en_raw.jsonl"
+    assert seen_map_output_paths[0].name == "iwslt2017-de-en_mapped.jsonl"
+    assert seen_raw_output_paths[0].parent.name == "iwslt2017-de-en_train_staging"
+    assert seen_map_output_paths[0].parent.name == "iwslt2017-de-en_train_staging"
+
+
+def test_preprocess_requires_dataset_name_for_generic_downloads(monkeypatch):
+    run_dir = _run_dir()
+    monkeypatch.chdir(run_dir)
+    _patch_common_io(monkeypatch, capture_save=False, calls=[])
+    _patch_training_token_ids(monkeypatch)
+    monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
+
+    try:
+        api.preprocess(
+            download_cfg=api.DownloadConfig(
+                path_name="parquet",
+                split="train",
+                data_files="https://huggingface.co/datasets/org/ds/resolve/rev/name/train.parquet",
+            ),
+            tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
+            map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
+        )
+        assert False, "expected ValueError"
+    except ValueError as exc:
+        assert "dataset_name" in str(exc)
