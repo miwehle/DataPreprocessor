@@ -1,8 +1,8 @@
 write_jsonl: true
 
 download_cfg:
-  dataset: Helsinki-NLP/news_commentary
-  config: de-en
+  path_name: Helsinki-NLP/news_commentary
+  name: de-en
   split: train
   overwrite_ids: true
 

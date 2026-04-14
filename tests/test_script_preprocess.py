@@ -19,7 +19,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
                 "artifacts_dir": "/content/drive/MyDrive/nmt_lab/artifacts",
                 "staging_dir": "/content/data_preprocessor_staging",
                 "write_jsonl": False,
-                "download_cfg": {"dataset": "Helsinki-NLP/europarl", "config": "de-en", "split": "train"},
+                "download_cfg": {"path_name": "Helsinki-NLP/europarl", "name": "de-en", "split": "train"},
                 "tokenize_cfg": {"tokenizer_model_name": "Helsinki-NLP/opus-mt-de-en"},
                 "map_cfg": {"src_lang": "de", "tgt_lang": "en", "include_text": True},
             }
@@ -47,7 +47,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
     assert calls == [
         {
             "download_cfg": api.DownloadConfig(
-                dataset="Helsinki-NLP/europarl", config="de-en", split="train"
+                path_name="Helsinki-NLP/europarl", name="de-en", split="train"
             ),
             "norm_cfg": None,
             "filter_cfg": None,

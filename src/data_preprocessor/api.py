@@ -272,8 +272,12 @@ def preprocess(
     # initialize configs and output paths
     norm_cfg = norm_cfg or NormConfig()
     filter_cfg = filter_cfg or FilterConfig()
-    dataset_name = _dataset_name_for_filesystem(download_cfg.dataset)
-    dataset_dir_name = f"{dataset_name}_{download_cfg.config}_{download_cfg.split}"
+    dataset_name = _dataset_name_for_filesystem(download_cfg.path_name)
+    dataset_dir_name = dataset_name
+    if download_cfg.name is not None:
+        dataset_dir_name = f"{dataset_dir_name}_{download_cfg.name}"
+    if download_cfg.split is not None:
+        dataset_dir_name = f"{dataset_dir_name}_{download_cfg.split}"
     if download_cfg.max_examples is not None:
         dataset_dir_name = f"{dataset_dir_name}_{download_cfg.max_examples}"
     final_root = _datasets_root(artifacts_dir)

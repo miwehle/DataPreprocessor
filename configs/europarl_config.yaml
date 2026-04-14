@@ -1,8 +1,8 @@
 write_jsonl: true
 
 download_cfg:
-  dataset: Helsinki-NLP/europarl
-  config: de-en
+  path_name: Helsinki-NLP/europarl
+  name: de-en
   split: train
   #max_examples: 1000
 

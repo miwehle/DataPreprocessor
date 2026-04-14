@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any
 
 
 @dataclass(frozen=True, kw_only=True)
 class DownloadConfig:
-    dataset: str
-    config: str
-    split: str
-    source_format: Literal["hf", "hf_parquet"] = "hf"
-    revision: str = "main"
-    parquet_basename: str | None = None
+    path_name: str
+    name: str | None = None
+    split: str | None = None
+    data_files: str | list[str] | dict[str, str | list[str]] | None = None
     max_examples: int | None = None
     include_ids: bool = True
     id_field: str = "id"

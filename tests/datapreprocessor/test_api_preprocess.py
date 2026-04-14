@@ -59,7 +59,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
 
     api.preprocess(
         download_cfg=api.DownloadConfig(
-            dataset="Helsinki-NLP/europarl", config="de-en", split="train", max_examples=123
+            path_name="Helsinki-NLP/europarl", name="de-en", split="train", max_examples=123
         ),
         norm_cfg=api.NormConfig(changes=["strip_edges", "collapse_whitespace"]),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en", max_seq_len=256),
@@ -102,7 +102,7 @@ def test_preprocess_derives_filesystem_dataset_name(monkeypatch):
     monkeypatch.setattr(api, "map", fake_map)
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Org/My-Data Set+V1", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Org/My-Data Set+V1", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
@@ -127,7 +127,7 @@ def test_preprocess_passes_training_token_ids_to_map(monkeypatch):
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en", max_seq_len=256),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
@@ -176,7 +176,7 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en", max_seq_len=256),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
@@ -217,7 +217,7 @@ def test_preprocess_uses_incremented_dataset_dir(monkeypatch):
     (run_dir / "artifacts" / "datasets" / "europarl_de-en_train").mkdir(parents=True, exist_ok=True)
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
@@ -246,7 +246,7 @@ def test_preprocess_logs_to_dataset_preprocess_log(monkeypatch):
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
     )
@@ -268,7 +268,7 @@ def test_preprocess_uses_separate_staging_dir(monkeypatch):
     monkeypatch.setattr(api, "_artifacts_root", lambda: run_dir / "artifacts")
 
     api.preprocess(
-        download_cfg=api.DownloadConfig(dataset="Helsinki-NLP/europarl", config="de-en", split="train"),
+        download_cfg=api.DownloadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
         tokenize_cfg=api.TokenizeConfig(tokenizer_model_name="Helsinki-NLP/opus-mt-de-en"),
         map_cfg=api.MapConfig(src_lang="de", tgt_lang="en"),
         staging_dir=staging_root,
