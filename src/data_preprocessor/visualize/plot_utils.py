@@ -130,7 +130,7 @@ def attach_adaptive_xtick_labels(fig, ax) -> None:
     # Hysteresis to avoid oscillation in transition widths.
     enter_diagonal_ratio = 0.95
     exit_diagonal_ratio = 0.80
-    state = {"diagonal": None}
+    state: dict[str, bool | None] = {"diagonal": None}
 
     def _update(_event=None):
         renderer = fig.canvas.get_renderer()
@@ -181,7 +181,7 @@ def attach_adaptive_value_labels(fig, bars, annotations) -> None:
     # Hysteresis to avoid oscillation in transition widths.
     enter_vertical_ratio = 0.90
     exit_vertical_ratio = 0.75
-    state = {"vertical": None}
+    state: dict[str, bool | None] = {"vertical": None}
 
     def _update(_event=None):
         renderer = fig.canvas.get_renderer()
@@ -237,7 +237,11 @@ def attach_toolbar_hint(fig, text: str):
     except ImportError:
         return None
 
-    label = tk.Label(master=toolbar, text=text, font=getattr(toolbar, "_label_font", None), padx=8)
+    label_kwargs = {"master": toolbar, "text": text, "padx": 8}
+    label_font = getattr(toolbar, "_label_font", None)
+    if label_font is not None:
+        label_kwargs["font"] = label_font
+    label = tk.Label(**label_kwargs)
     label.pack(side=tk.LEFT)
     toolbar._codex_hint_label = label
     return label
