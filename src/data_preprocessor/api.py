@@ -81,6 +81,16 @@ def _stage_name(config: object) -> str:
     return type(config).__name__.removesuffix("Config").lower()
 
 
+def _dataset_dir_name(load_config: LoadConfig, dataset_name: str) -> str:
+    parts = [dataset_name]
+    if load_config.dataset_name is None and load_config.name is not None:
+        parts.append(load_config.name)
+    parts.append(load_config.split)
+    if load_config.max_examples is not None:
+        parts.append(str(load_config.max_examples))
+    return "_".join(parts)
+
+
 def _report_context(stage: Callable[..., Iterable[Example]], config: object, staging_dir: Path | None):
     if staging_dir is None:
         return nullcontext(None)
@@ -243,12 +253,7 @@ def preprocess(
     norm_config = norm_config or NormConfig()
     filter_config = filter_config or FilterConfig()
     dataset_name = load_config.dataset_name or _dataset_name_for_filesystem(load_config.path_name)
-    dataset_dir_name = dataset_name
-    if load_config.dataset_name is None and load_config.name is not None:
-        dataset_dir_name = f"{dataset_dir_name}_{load_config.name}"
-    dataset_dir_name = f"{dataset_dir_name}_{load_config.split}"
-    if load_config.max_examples is not None:
-        dataset_dir_name = f"{dataset_dir_name}_{load_config.max_examples}"
+    dataset_dir_name = _dataset_dir_name(load_config, dataset_name)
     final_root = _datasets_root(artifacts_dir)
     resolved_staging_root = _staging_root(artifacts_dir, staging_dir) if write_snapshots else None
     run_name = _next_available_run_name(dataset_dir_name, final_root, resolved_staging_root)
