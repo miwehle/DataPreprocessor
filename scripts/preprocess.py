@@ -23,11 +23,11 @@ for path in (SRC_DIR, SHARED_SRC_DIR):
 
 
 def main() -> int:
-    from lab_infrastructure import run
+    from lab_infrastructure import run_cli
 
     from data_preprocessor import preprocess
 
-    run(preprocess)
+    run_cli(preprocess)
     return 0
 
 
