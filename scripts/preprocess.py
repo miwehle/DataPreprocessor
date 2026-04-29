@@ -25,9 +25,9 @@ for path in (SRC_DIR, SHARED_SRC_DIR):
 def main() -> int:
     from lab_infrastructure import run
 
-    from data_preprocessor import PreprocessRunConfig, preprocess
+    from data_preprocessor import preprocess
 
-    run(preprocess, PreprocessRunConfig)
+    run(preprocess)
     return 0
 
 
