@@ -51,6 +51,7 @@ def _patch_training_token_ids(monkeypatch) -> None:
 
 def _config(
     *,
+    dataset_family="europarl",
     load_config,
     tokenize_config,
     map_config,
@@ -62,6 +63,7 @@ def _config(
     write_snapshots=False,
 ):
     return api.PreprocessRunConfig(
+        dataset_family=dataset_family,
         load_config=load_config,
         tokenize_config=tokenize_config,
         map_config=map_config,
@@ -110,7 +112,7 @@ def test_preprocess_calls_stages_in_order(monkeypatch):
     assert tokenize_call["args"][1].src_lang == "de"
     map_call = next(kwargs for name, kwargs in calls if name == "map")
     assert map_call["args"][1].include_text is True
-    assert calls[-1][1]["output_path"] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train_123"
+    assert calls[-1][1]["output_path"] == run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess"
 
 
 def test_preprocess_writes_snapshots_from_stage_names(monkeypatch):
@@ -131,8 +133,8 @@ def test_preprocess_writes_snapshots_from_stage_names(monkeypatch):
     assert save_paths[2].name == "My-Data_Set_V1_filter.jsonl"
     assert save_paths[3].name == "My-Data_Set_V1_tokenize.jsonl"
     assert save_paths[4].name == "My-Data_Set_V1_map.jsonl"
-    assert save_paths[0].parent.name == "My-Data_Set_V1_de-en_train_staging"
-    assert save_paths[5] == run_dir / "artifacts" / "datasets" / "My-Data_Set_V1_de-en_train"
+    assert save_paths[0].parent.name == "d1_preprocess_staging"
+    assert save_paths[5] == run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess"
 
 
 def test_preprocess_passes_training_token_ids_to_map(monkeypatch):
@@ -198,7 +200,7 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
         )
     )
 
-    manifest_path = run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "dataset_manifest.yaml"
+    manifest_path = run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess" / "dataset_manifest.yaml"
     assert manifest_path.is_file()
 
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
@@ -222,10 +224,10 @@ def test_preprocess_writes_dataset_manifest(monkeypatch):
     }
 
 
-def test_preprocess_uses_incremented_dataset_dir(monkeypatch):
+def test_preprocess_uses_next_dataset_id(monkeypatch):
     run_dir, calls = _prepare_preprocess_test(monkeypatch, capture_save=True)
 
-    (run_dir / "artifacts" / "datasets" / "europarl_de-en_train").mkdir(parents=True, exist_ok=True)
+    (run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess").mkdir(parents=True, exist_ok=True)
 
     api.preprocess(
         _config(
@@ -235,8 +237,8 @@ def test_preprocess_uses_incremented_dataset_dir(monkeypatch):
         )
     )
 
-    assert (run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)").is_dir()
-    assert calls[-1][1]["output_path"] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train (1)"
+    assert (run_dir / "artifacts" / "datasets" / "europarl" / "d2_preprocess").is_dir()
+    assert calls[-1][1]["output_path"] == run_dir / "artifacts" / "datasets" / "europarl" / "d2_preprocess"
 
 
 def test_preprocess_logs_to_dataset_preprocess_log(monkeypatch):
@@ -262,7 +264,7 @@ def test_preprocess_logs_to_dataset_preprocess_log(monkeypatch):
         )
     )
 
-    log_path = run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "preprocess.log"
+    log_path = run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess" / "preprocess.log"
     assert log_path.is_file()
     log_text = log_path.read_text(encoding="utf-8")
     assert "Start load" in log_text
@@ -284,8 +286,8 @@ def test_preprocess_uses_separate_staging_dir(monkeypatch):
     )
 
     save_paths = [kwargs["output_path"] for name, kwargs in calls if name == "save"]
-    assert save_paths[0] == staging_root / "europarl_de-en_train_staging" / "europarl_load.jsonl"
-    assert save_paths[-1] == run_dir / "artifacts" / "datasets" / "europarl_de-en_train"
+    assert save_paths[0] == staging_root / "europarl" / "d1_preprocess_staging" / "europarl_load.jsonl"
+    assert save_paths[-1] == run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess"
 
 
 def test_preprocess_uses_dataset_name_for_generic_downloads(monkeypatch):
@@ -308,8 +310,8 @@ def test_preprocess_uses_dataset_name_for_generic_downloads(monkeypatch):
     save_paths = [kwargs["output_path"] for name, kwargs in calls if name == "save"]
     assert save_paths[0].name == "iwslt2017-de-en_load.jsonl"
     assert save_paths[4].name == "iwslt2017-de-en_map.jsonl"
-    assert save_paths[0].parent.name == "iwslt2017-de-en_train_staging"
-    assert save_paths[4].parent.name == "iwslt2017-de-en_train_staging"
+    assert save_paths[0].parent.name == "d1_preprocess_staging"
+    assert save_paths[4].parent.name == "d1_preprocess_staging"
 
 
 def test_preprocess_requires_dataset_name_for_generic_downloads(monkeypatch):
@@ -345,12 +347,12 @@ def test_preprocess_calls_split_after_writing_base_dataset(monkeypatch):
     assert [name for name, _ in calls] == ["load", "norm", "filter", "tokenize", "map", "save", "split"]
     split_call = calls[-1][1]["config"]
     assert split_call == api.SplitConfig(
-        dataset=str(run_dir / "artifacts" / "datasets" / "europarl_de-en_train"),
+        dataset=str(run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess"),
         split_ratio={"train": 0.9, "val": 0.1},
         seed=13,
     )
     config_text = (
-        run_dir / "artifacts" / "datasets" / "europarl_de-en_train" / "preprocess_config.yaml"
+        run_dir / "artifacts" / "datasets" / "europarl" / "d1_preprocess" / "preprocess_config.yaml"
     ).read_text(encoding="utf-8")
     assert "split_config:" in config_text
     assert "seed: 13" in config_text

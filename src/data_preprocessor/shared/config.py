@@ -64,6 +64,7 @@ class SplitConfig:
 
 @dataclass(frozen=True, kw_only=True, config=_CONFIG)
 class PreprocessRunConfig:
+    dataset_family: str
     load_config: LoadConfig
     tokenize_config: TokenizeConfig
     map_config: MapConfig

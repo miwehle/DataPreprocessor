@@ -53,7 +53,7 @@ def plot_pair_length_histogram(
 
 
 def main() -> None:
-    run("../artifacts/datasets/iwslt2017_iwslt2017-de-en_train_staging (3)/iwslt2017_raw.jsonl")
+    run("../artifacts/datasets/tedtalks/d1_preprocess_staging/iwslt2017-de-en_load.jsonl")
 
 
 def run(dataset_path: str | Path) -> None:

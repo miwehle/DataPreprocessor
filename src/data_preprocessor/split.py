@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from pathlib import Path
 
 import yaml
+from lab_infrastructure.dataset_artifacts import (
+    append_dataset_register,
+    dataset_id_from_path,
+    next_dataset_artifact,
+)
 
 from data_preprocessor.io import load, save
 from data_preprocessor.shared import SplitConfig
@@ -46,8 +52,9 @@ def _split_counts(total: int, ratios: Mapping[str, float]) -> dict[str, int]:
     return counts
 
 
-def _split_output_dir(dataset_dir: Path, split_name: str) -> Path:
-    return dataset_dir.with_name(f"{dataset_dir.name}_split-{split_name}")
+def _operation(split_name: str) -> str:
+    safe_name = re.sub(r"[^a-z0-9]+", "_", split_name.lower()).strip("_")
+    return f"split_{safe_name}"
 
 
 def _write_split_manifest(output_dir: Path, dataset_dir: Path, split_name: str, config: SplitConfig, count: int) -> None:
@@ -65,13 +72,18 @@ def _write_split_manifest(output_dir: Path, dataset_dir: Path, split_name: str, 
 
 def split_dataset(config: SplitConfig) -> None:
     dataset_dir = _validate_split_config(config)
+    datasets_root = dataset_dir.parents[1]
+    parent_id = dataset_id_from_path(dataset_dir)
+    family = parent_id.split("/", maxsplit=1)[0]
     dataset_manifest = yaml.safe_load((dataset_dir / _DATASET_MANIFEST).read_text(encoding="utf-8"))
     dataset = load(dataset_dir)
     shuffled = dataset.shuffle(seed=config.seed)
     counts = _split_counts(len(shuffled), config.split_ratio)
     start = 0
     for split_name, count in counts.items():
-        output_dir = _split_output_dir(dataset_dir, split_name)
+        operation = _operation(split_name)
+        artifact = next_dataset_artifact(datasets_root, family, operation)
+        output_dir = artifact.path
         if output_dir.exists():
             raise FileExistsError(f"Split output already exists: {output_dir}")
         subset = shuffled.select(range(start, start + count))
@@ -82,4 +94,11 @@ def split_dataset(config: SplitConfig) -> None:
             yaml.safe_dump(split_dataset_manifest, sort_keys=False, allow_unicode=True), encoding="utf-8"
         )
         _write_split_manifest(output_dir, dataset_dir, split_name, config, count)
+        append_dataset_register(
+            datasets_root,
+            parent=parent_id,
+            operation=operation,
+            dataset_id=artifact.dataset_id,
+            repo_root=Path(__file__).resolve().parents[2],
+        )
         start += count

@@ -10,7 +10,8 @@ from data_preprocessor import api
 
 
 def _dataset_dir() -> Path:
-    root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests" / uuid4().hex / "dataset"
+    root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests" / uuid4().hex
+    root = root / "artifacts" / "datasets" / "europarl" / "d1_preprocess"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -55,9 +56,9 @@ def test_split_writes_split_dirs_and_manifests():
         )
     )
 
-    train_dir = dataset_dir.with_name(f"{dataset_dir.name}_split-train")
-    val_dir = dataset_dir.with_name(f"{dataset_dir.name}_split-val")
-    test_dir = dataset_dir.with_name(f"{dataset_dir.name}_split-test")
+    train_dir = dataset_dir.parent / "d2_split_train"
+    val_dir = dataset_dir.parent / "d3_split_val"
+    test_dir = dataset_dir.parent / "d4_split_test"
     assert len(load_from_disk(str(train_dir))) == 3
     assert len(load_from_disk(str(val_dir))) == 1
     assert len(load_from_disk(str(test_dir))) == 1
@@ -72,6 +73,8 @@ def test_split_writes_split_dirs_and_manifests():
         "split_ratio": {"train": 0.6, "val": 0.2, "test": 0.2},
         "num_examples": 3,
     }
+    register_text = (dataset_dir.parents[1] / "datasets.csv").read_text(encoding="utf-8")
+    assert ";europarl/d2;split_train;europarl/d1;" in register_text
 
 
 def test_split_requires_dataset_path():

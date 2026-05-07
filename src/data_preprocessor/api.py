@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from lab_infrastructure.dataset_artifacts import append_dataset_register, next_dataset_artifact
 from lab_infrastructure.logging import get_logger, log_calls
 from lab_infrastructure.run_config import write_run_config
 
@@ -46,22 +47,6 @@ def _dataset_name_for_filesystem(dataset: str) -> str:
     return safe or "dataset"
 
 
-def _run_dirs(run_name: str, final_root: Path, staging_root: Path | None) -> tuple[Path, Path | None]:
-    staging_dir = None if staging_root is None else staging_root / f"{run_name}_staging"
-    return final_root / run_name, staging_dir
-
-
-def _next_available_run_name(base_name: str, final_root: Path, staging_root: Path | None) -> str:
-    run_name = base_name
-    i = 1
-    while True:
-        output_dir, staging_dir = _run_dirs(run_name, final_root, staging_root)
-        if not output_dir.exists() and (staging_dir is None or not staging_dir.exists()):
-            return run_name
-        run_name = f"{base_name} ({i})"
-        i += 1
-
-
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
@@ -80,16 +65,6 @@ def _staging_root(artifacts_dir: str | Path | None, staging_dir: str | Path | No
 
 def _stage_name(config: object) -> str:
     return type(config).__name__.removesuffix("Config").lower()
-
-
-def _dataset_dir_name(load_config: LoadConfig, dataset_name: str) -> str:
-    parts = [dataset_name]
-    if load_config.dataset_name is None and load_config.name is not None:
-        parts.append(load_config.name)
-    parts.append(load_config.split)
-    if load_config.max_examples is not None:
-        parts.append(str(load_config.max_examples))
-    return "_".join(parts)
 
 
 def _report_context(stage: Callable[..., Iterable[Example]], config: object, staging_dir: Path | None):
@@ -242,16 +217,20 @@ def preprocess(
     norm_config = config.norm_config or NormConfig()
     filter_config = config.filter_config or FilterConfig()
     dataset_name = config.load_config.dataset_name or _dataset_name_for_filesystem(config.load_config.path_name)
-    dataset_dir_name = _dataset_dir_name(config.load_config, dataset_name)
     final_root = _datasets_root(config.artifacts_dir)
     resolved_staging_root = (
         _staging_root(config.artifacts_dir, config.staging_dir) if config.write_snapshots else None
     )
-    run_name = _next_available_run_name(dataset_dir_name, final_root, resolved_staging_root)
-    preprocessed_output, resolved_staging_dir = _run_dirs(run_name, final_root, resolved_staging_root)
+    artifact = next_dataset_artifact(final_root, config.dataset_family, "preprocess")
+    preprocessed_output = artifact.path
+    resolved_staging_dir = (
+        None
+        if resolved_staging_root is None
+        else resolved_staging_root / artifact.path.relative_to(final_root).with_name(f"{artifact.path.name}_staging")
+    )
     preprocessed_output.mkdir(parents=True, exist_ok=True)
     if resolved_staging_dir is not None:
-        resolved_staging_dir.mkdir(parents=True, exist_ok=True)
+        resolved_staging_dir.mkdir(parents=True)
     get_logger("data_preprocessor", log_path=preprocessed_output / "preprocess.log")
 
     tokenizer = create_hf_tokenizer(config.tokenize_config.tokenizer_model_name)
@@ -281,7 +260,9 @@ def preprocess(
         preprocessed_output / "preprocess_config.yaml",
         {
             "dataset_schema_version": "1",
+            "dataset_id": artifact.dataset_id,
             "write_snapshots": config.write_snapshots,
+            "dataset_family": config.dataset_family,
             "artifacts_dir": None if config.artifacts_dir is None else str(config.artifacts_dir),
             "staging_dir": None if config.staging_dir is None else str(config.staging_dir),
             "load_config": asdict(config.load_config),
@@ -310,5 +291,12 @@ def preprocess(
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
 
     io.save(mapped, preprocessed_output)
+    append_dataset_register(
+        final_root,
+        parent="",
+        operation="preprocess",
+        dataset_id=artifact.dataset_id,
+        repo_root=_repo_root(),
+    )
     if resolved_split_config is not None:
         split(resolved_split_config)

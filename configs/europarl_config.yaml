@@ -1,3 +1,4 @@
+dataset_family: europarl
 write_snapshots: true
 
 load_config:

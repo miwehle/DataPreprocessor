@@ -91,7 +91,7 @@ def run(report_path: str | Path = "flaw_report.txt") -> None:
 
 
 def main() -> None:
-    run("../artifacts/datasets/iwslt2017_iwslt2017-de-en_train_staging (3)/flaw_report.txt")
+    run("../artifacts/datasets/tedtalks/d1_preprocess_staging/flaw_report.txt")
 
 
 if __name__ == "__main__":
