@@ -5,11 +5,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import yaml
-from lab_infrastructure.dataset_artifacts import (
-    append_dataset_register,
-    dataset_id_from_path,
-    next_dataset_artifact,
-)
+from lab_infrastructure.dataset_register import append_dataset_register, next_numbered_path
 
 from data_preprocessor.io import load, save
 from data_preprocessor.shared import SplitConfig
@@ -73,19 +69,17 @@ def _write_split_manifest(output_dir: Path, dataset_dir: Path, split_name: str, 
 def split_dataset(config: SplitConfig) -> None:
     dataset_dir = _validate_split_config(config)
     datasets_root = dataset_dir.parents[1]
-    parent_id = dataset_id_from_path(dataset_dir)
-    family = parent_id.split("/", maxsplit=1)[0]
+    family = dataset_dir.parent.name
+    parent_dataset = f"{family}/{dataset_dir.name}"
     dataset_manifest = yaml.safe_load((dataset_dir / _DATASET_MANIFEST).read_text(encoding="utf-8"))
-    dataset = load(dataset_dir)
-    shuffled = dataset.shuffle(seed=config.seed)
+    source_dataset = load(dataset_dir)
+    shuffled = source_dataset.shuffle(seed=config.seed)
     counts = _split_counts(len(shuffled), config.split_ratio)
     start = 0
     for split_name, count in counts.items():
         operation = _operation(split_name)
-        artifact = next_dataset_artifact(datasets_root, family, operation)
-        output_dir = artifact.path
-        if output_dir.exists():
-            raise FileExistsError(f"Split output already exists: {output_dir}")
+        output_dir = next_numbered_path(datasets_root / family, "d")
+        dataset_ref = f"{family}/{output_dir.name}"
         subset = shuffled.select(range(start, start + count))
         save(subset, output_dir)
         split_dataset_manifest = dict(dataset_manifest)
@@ -96,9 +90,9 @@ def split_dataset(config: SplitConfig) -> None:
         _write_split_manifest(output_dir, dataset_dir, split_name, config, count)
         append_dataset_register(
             datasets_root,
-            parent=parent_id,
+            parent=parent_dataset,
             operation=operation,
-            dataset_id=artifact.dataset_id,
+            dataset=dataset_ref,
             repo_root=Path(__file__).resolve().parents[2],
         )
         start += count

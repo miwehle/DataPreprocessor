@@ -55,7 +55,7 @@ def plot_token_pair_length_histogram(
 
 
 def main() -> None:
-    run("../artifacts/datasets/tedtalks/d1_preprocess_staging/iwslt2017-de-en_tokenize.jsonl")
+    run("../artifacts/datasets/tedtalks/d1_staging/iwslt2017-de-en_tokenize.jsonl")
 
 
 def run(dataset_path: str | Path) -> None:

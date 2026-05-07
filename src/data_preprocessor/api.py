@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from lab_infrastructure.dataset_artifacts import append_dataset_register, next_dataset_artifact
+from lab_infrastructure.dataset_register import append_dataset_register, next_numbered_path
 from lab_infrastructure.logging import get_logger, log_calls
 from lab_infrastructure.run_config import write_run_config
 
@@ -221,12 +221,14 @@ def preprocess(
     resolved_staging_root = (
         _staging_root(config.artifacts_dir, config.staging_dir) if config.write_snapshots else None
     )
-    artifact = next_dataset_artifact(final_root, config.dataset_family, "preprocess")
-    preprocessed_output = artifact.path
+    if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", config.dataset_family) is None:
+        raise ValueError(f"dataset_family must be a lowercase slug, got: {config.dataset_family}")
+    preprocessed_output = next_numbered_path(final_root / config.dataset_family, "d")
+    dataset_ref = f"{config.dataset_family}/{preprocessed_output.name}"
     resolved_staging_dir = (
         None
         if resolved_staging_root is None
-        else resolved_staging_root / artifact.path.relative_to(final_root).with_name(f"{artifact.path.name}_staging")
+        else resolved_staging_root / config.dataset_family / f"{preprocessed_output.name}_staging"
     )
     preprocessed_output.mkdir(parents=True, exist_ok=True)
     if resolved_staging_dir is not None:
@@ -260,7 +262,7 @@ def preprocess(
         preprocessed_output / "preprocess_config.yaml",
         {
             "dataset_schema_version": "1",
-            "dataset_id": artifact.dataset_id,
+            "dataset_id": dataset_ref,
             "write_snapshots": config.write_snapshots,
             "dataset_family": config.dataset_family,
             "artifacts_dir": None if config.artifacts_dir is None else str(config.artifacts_dir),
@@ -295,7 +297,7 @@ def preprocess(
         final_root,
         parent="",
         operation="preprocess",
-        dataset_id=artifact.dataset_id,
+        dataset=dataset_ref,
         repo_root=_repo_root(),
     )
     if resolved_split_config is not None:

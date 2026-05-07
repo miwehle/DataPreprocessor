@@ -55,7 +55,7 @@ def run(report_path: str | Path = "norm_report.txt") -> None:
 
 
 def main() -> None:
-    run("../artifacts/datasets/tedtalks/d1_preprocess_staging/norm_report.txt")
+    run("../artifacts/datasets/tedtalks/d1_staging/norm_report.txt")
 
 
 if __name__ == "__main__":
