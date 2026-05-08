@@ -88,6 +88,7 @@ def test_split_writes_split_dirs_and_manifests():
 def test_split_uses_next_splits_dir():
     dataset_dir = _dataset_dir()
     (dataset_dir / "splits").mkdir()
+    (dataset_dir / "splits-3").mkdir()
     _write_dataset(dataset_dir, _rows(2), _manifest(2))
 
     api.split(api.SplitConfig(dataset=str(dataset_dir), split_ratio={"train": 0.5, "val": 0.5}, seed=7))

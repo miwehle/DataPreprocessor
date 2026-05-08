@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from lab_infrastructure.artifact_paths import artifact_ref, next_named_path
 from lab_infrastructure.dataset_register import append_dataset_register
-from lab_infrastructure.dataset_schema import dataset_ref, next_named_path
 from lab_infrastructure.logging import get_logger, log_calls
 from lab_infrastructure.run_config import write_run_config
 
@@ -225,7 +225,7 @@ def preprocess(
     if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", config.dataset_family) is None:
         raise ValueError(f"dataset_family must be a lowercase slug, got: {config.dataset_family}")
     preprocessed_output = next_named_path(final_root / config.dataset_family, "preprocessed")
-    preprocessed_dataset_ref = dataset_ref(final_root, preprocessed_output)
+    preprocessed_dataset_ref = artifact_ref(final_root, preprocessed_output)
     resolved_staging_dir = (
         None
         if resolved_staging_root is None
