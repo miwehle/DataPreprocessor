@@ -11,7 +11,7 @@ from data_preprocessor import api
 
 def _dataset_dir() -> Path:
     root = Path(__file__).resolve().parents[2] / ".local_tmp" / "tests" / uuid4().hex
-    root = root / "artifacts" / "datasets" / "europarl" / "d1"
+    root = root / "artifacts" / "datasets" / "europarl" / "preprocessed"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -27,9 +27,8 @@ def _read_manifest(path: Path) -> dict[str, object]:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-def test_split_writes_split_dirs_and_manifests():
-    dataset_dir = _dataset_dir()
-    manifest = {
+def _manifest(num_examples: int) -> dict[str, object]:
+    return {
         "schema_version": 1,
         "tokenizer_model_name": "test-tokenizer",
         "src_lang": "de",
@@ -44,10 +43,19 @@ def test_split_writes_split_dirs_and_manifests():
         "tgt_pad_id": 31,
         "tgt_bos_id": 32,
         "tgt_eos_id": 2,
-        "num_examples": 5,
+        "num_examples": num_examples,
         "configured_max_seq_len": 128,
     }
-    rows = [{"id": i, "src_ids": [i, i + 1], "tgt_ids": [32, i + 10, 2]} for i in range(5)]
+
+
+def _rows(count: int) -> list[dict[str, object]]:
+    return [{"id": i, "src_ids": [i, i + 1], "tgt_ids": [32, i + 10, 2]} for i in range(count)]
+
+
+def test_split_writes_split_dirs_and_manifests():
+    dataset_dir = _dataset_dir()
+    manifest = _manifest(5)
+    rows = _rows(5)
     _write_dataset(dataset_dir, rows, manifest)
 
     api.split(
@@ -56,9 +64,9 @@ def test_split_writes_split_dirs_and_manifests():
         )
     )
 
-    train_dir = dataset_dir.parent / "d2"
-    val_dir = dataset_dir.parent / "d3"
-    test_dir = dataset_dir.parent / "d4"
+    train_dir = dataset_dir / "splits" / "train"
+    val_dir = dataset_dir / "splits" / "val"
+    test_dir = dataset_dir / "splits" / "test"
     assert len(load_from_disk(str(train_dir))) == 3
     assert len(load_from_disk(str(val_dir))) == 1
     assert len(load_from_disk(str(test_dir))) == 1
@@ -74,7 +82,18 @@ def test_split_writes_split_dirs_and_manifests():
         "num_examples": 3,
     }
     register_text = (dataset_dir.parents[1] / "dataset_register.csv").read_text(encoding="utf-8")
-    assert ";europarl/d2;split_train;europarl/d1;" in register_text
+    assert ";europarl/preprocessed/splits/train;split_train;europarl/preprocessed;" in register_text
+
+
+def test_split_uses_next_splits_dir():
+    dataset_dir = _dataset_dir()
+    (dataset_dir / "splits").mkdir()
+    _write_dataset(dataset_dir, _rows(2), _manifest(2))
+
+    api.split(api.SplitConfig(dataset=str(dataset_dir), split_ratio={"train": 0.5, "val": 0.5}, seed=7))
+
+    assert len(load_from_disk(str(dataset_dir / "splits-2" / "train"))) == 1
+    assert len(load_from_disk(str(dataset_dir / "splits-2" / "val"))) == 1
 
 
 def test_split_requires_dataset_path():

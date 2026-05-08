@@ -5,7 +5,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import yaml
-from lab_infrastructure.dataset_register import append_dataset_register, next_numbered_path
+from lab_infrastructure.dataset_register import append_dataset_register
+from lab_infrastructure.dataset_schema import dataset_ref, next_named_path
 
 from data_preprocessor.io import load, save
 from data_preprocessor.shared import SplitConfig
@@ -69,8 +70,8 @@ def _write_split_manifest(output_dir: Path, dataset_dir: Path, split_name: str, 
 def split_dataset(config: SplitConfig) -> None:
     dataset_dir = _validate_split_config(config)
     datasets_root = dataset_dir.parents[1]
-    family = dataset_dir.parent.name
-    parent_dataset = f"{family}/{dataset_dir.name}"
+    parent_dataset = dataset_ref(datasets_root, dataset_dir)
+    splits_root = next_named_path(dataset_dir, "splits")
     dataset_manifest = yaml.safe_load((dataset_dir / _DATASET_MANIFEST).read_text(encoding="utf-8"))
     source_dataset = load(dataset_dir)
     shuffled = source_dataset.shuffle(seed=config.seed)
@@ -78,8 +79,8 @@ def split_dataset(config: SplitConfig) -> None:
     start = 0
     for split_name, count in counts.items():
         operation = _operation(split_name)
-        output_dir = next_numbered_path(datasets_root / family, "d")
-        dataset_ref = f"{family}/{output_dir.name}"
+        output_dir = splits_root / split_name
+        split_dataset_ref = dataset_ref(datasets_root, output_dir)
         subset = shuffled.select(range(start, start + count))
         save(subset, output_dir)
         split_dataset_manifest = dict(dataset_manifest)
@@ -92,7 +93,7 @@ def split_dataset(config: SplitConfig) -> None:
             datasets_root,
             parent=parent_dataset,
             operation=operation,
-            dataset=dataset_ref,
+            dataset=split_dataset_ref,
             repo_root=Path(__file__).resolve().parents[2],
         )
         start += count

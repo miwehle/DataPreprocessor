@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from lab_infrastructure.dataset_register import append_dataset_register, next_numbered_path
+from lab_infrastructure.dataset_register import append_dataset_register
+from lab_infrastructure.dataset_schema import dataset_ref, next_named_path
 from lab_infrastructure.logging import get_logger, log_calls
 from lab_infrastructure.run_config import write_run_config
 
@@ -223,12 +224,12 @@ def preprocess(
     )
     if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", config.dataset_family) is None:
         raise ValueError(f"dataset_family must be a lowercase slug, got: {config.dataset_family}")
-    preprocessed_output = next_numbered_path(final_root / config.dataset_family, "d")
-    dataset_ref = f"{config.dataset_family}/{preprocessed_output.name}"
+    preprocessed_output = next_named_path(final_root / config.dataset_family, "preprocessed")
+    preprocessed_dataset_ref = dataset_ref(final_root, preprocessed_output)
     resolved_staging_dir = (
         None
         if resolved_staging_root is None
-        else resolved_staging_root / config.dataset_family / f"{preprocessed_output.name}_staging"
+        else resolved_staging_root / preprocessed_output.relative_to(final_root) / "staging"
     )
     preprocessed_output.mkdir(parents=True, exist_ok=True)
     if resolved_staging_dir is not None:
@@ -262,7 +263,7 @@ def preprocess(
         preprocessed_output / "preprocess_config.yaml",
         {
             "dataset_schema_version": "1",
-            "dataset_id": dataset_ref,
+            "dataset_id": preprocessed_dataset_ref,
             "write_snapshots": config.write_snapshots,
             "dataset_family": config.dataset_family,
             "artifacts_dir": None if config.artifacts_dir is None else str(config.artifacts_dir),
@@ -297,7 +298,7 @@ def preprocess(
         final_root,
         parent="",
         operation="preprocess",
-        dataset=dataset_ref,
+        dataset=preprocessed_dataset_ref,
         repo_root=_repo_root(),
     )
     if resolved_split_config is not None:
