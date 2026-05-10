@@ -1,4 +1,4 @@
-dataset_family: europarl
+work_dir: europarl
 write_snapshots: true
 
 load_config:

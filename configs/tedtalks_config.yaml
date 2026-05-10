@@ -1,4 +1,4 @@
-dataset_family: tedtalks
+work_dir: tedtalks
 write_snapshots: true
 
 load_config:

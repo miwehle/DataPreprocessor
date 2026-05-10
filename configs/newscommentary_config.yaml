@@ -1,4 +1,4 @@
-dataset_family: news-commentary
+work_dir: news-commentary
 write_snapshots: true
 
 load_config:

@@ -222,9 +222,9 @@ def preprocess(
     resolved_staging_root = (
         _staging_root(config.artifacts_dir, config.staging_dir) if config.write_snapshots else None
     )
-    if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", config.dataset_family) is None:
-        raise ValueError(f"dataset_family must be a lowercase slug, got: {config.dataset_family}")
-    preprocessed_output = next_named_path(final_root / config.dataset_family, "preprocessed")
+    if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", config.work_dir) is None:
+        raise ValueError(f"work_dir must be a lowercase slug, got: {config.work_dir}")
+    preprocessed_output = next_named_path(final_root / config.work_dir, "preprocessed")
     preprocessed_dataset_ref = artifact_ref(final_root, preprocessed_output)
     resolved_staging_dir = (
         None
@@ -265,7 +265,7 @@ def preprocess(
             "dataset_schema_version": "1",
             "dataset_id": preprocessed_dataset_ref,
             "write_snapshots": config.write_snapshots,
-            "dataset_family": config.dataset_family,
+            "work_dir": config.work_dir,
             "artifacts_dir": None if config.artifacts_dir is None else str(config.artifacts_dir),
             "staging_dir": None if config.staging_dir is None else str(config.staging_dir),
             "load_config": asdict(config.load_config),

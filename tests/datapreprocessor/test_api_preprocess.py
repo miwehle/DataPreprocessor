@@ -51,7 +51,7 @@ def _patch_training_token_ids(monkeypatch) -> None:
 
 def _config(
     *,
-    dataset_family="europarl",
+    work_dir="europarl",
     load_config,
     tokenize_config,
     map_config,
@@ -63,7 +63,7 @@ def _config(
     write_snapshots=False,
 ):
     return api.PreprocessRunConfig(
-        dataset_family=dataset_family,
+        work_dir=work_dir,
         load_config=load_config,
         tokenize_config=tokenize_config,
         map_config=map_config,

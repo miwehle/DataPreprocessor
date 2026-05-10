@@ -16,7 +16,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
     config_path.write_text(
         yaml.safe_dump(
             {
-                "dataset_family": "europarl",
+                "work_dir": "europarl",
                 "artifacts_dir": "/content/drive/MyDrive/nmt_lab/artifacts",
                 "staging_dir": "/content/data_preprocessor_staging",
                 "write_snapshots": True,
@@ -50,7 +50,7 @@ def test_script_preprocess_loads_yaml_and_calls_api(monkeypatch):
     assert excinfo.value.code == 0
     assert calls == [
         api.PreprocessRunConfig(
-            dataset_family="europarl",
+            work_dir="europarl",
             load_config=api.LoadConfig(path_name="Helsinki-NLP/europarl", name="de-en", split="train"),
             norm_config=None,
             filter_config=None,
