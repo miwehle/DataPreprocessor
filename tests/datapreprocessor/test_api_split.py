@@ -82,7 +82,7 @@ def test_split_writes_split_dirs_and_manifests():
         "num_examples": 3,
     }
     register_text = (dataset_dir.parents[1] / "dataset_register.csv").read_text(encoding="utf-8")
-    assert ";europarl/preprocessed/splits/train;split_train;europarl/preprocessed;" in register_text
+    assert "europarl/preprocessed/splits/train;split_train;europarl/preprocessed;" in register_text
 
 
 def test_split_uses_next_splits_dir():

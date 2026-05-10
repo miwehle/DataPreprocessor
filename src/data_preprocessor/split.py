@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml
 from lab_infrastructure.artifact_paths import artifact_ref, next_named_path
-from lab_infrastructure.dataset_register import append_dataset_register
+from lab_infrastructure.dataset_register import register_dataset
 
 from data_preprocessor.io import load, save
 from data_preprocessor.shared import SplitConfig
@@ -89,7 +89,7 @@ def split_dataset(config: SplitConfig) -> None:
             yaml.safe_dump(split_dataset_manifest, sort_keys=False, allow_unicode=True), encoding="utf-8"
         )
         _write_split_manifest(output_dir, dataset_dir, split_name, config, count)
-        append_dataset_register(
+        register_dataset(
             datasets_root,
             parent=parent_dataset,
             operation=operation,

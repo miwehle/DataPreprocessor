@@ -12,7 +12,7 @@ from typing import Any
 
 import yaml
 from lab_infrastructure.artifact_paths import artifact_ref, next_named_path
-from lab_infrastructure.dataset_register import append_dataset_register
+from lab_infrastructure.dataset_register import register_dataset
 from lab_infrastructure.logging import get_logger, log_calls
 from lab_infrastructure.run_config import write_run_config
 
@@ -294,7 +294,7 @@ def preprocess(
         yaml.safe_dump(dataset_manifest, f, sort_keys=False, allow_unicode=True)
 
     io.save(mapped, preprocessed_output)
-    append_dataset_register(
+    register_dataset(
         final_root,
         parent="",
         operation="preprocess",
